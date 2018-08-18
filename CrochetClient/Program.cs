@@ -9,7 +9,7 @@ namespace CrochetClient
     static class Program
     {
         /// <summary>
-        /// The main entry point for the application.
+        /// The main entry point for the application. Test
         /// </summary>
         [STAThread]
         static void Main()
