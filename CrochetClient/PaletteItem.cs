@@ -25,7 +25,7 @@ namespace CrochetClient
 
         public event EventHandler<IPaletteItem> ColorClick;
 
-        public string Text
+        public override string Text
         {
             get
             {
