@@ -16,6 +16,23 @@ namespace TemperatureClient
         public MainForm()
         {
             InitializeComponent();
+
+            DateTime endDate = DateTime.Today.AddDays(-1);
+            DateTime startDate;
+            if (Properties.Settings.Default.LastDate.Ticks > 0)
+            {
+                startDate = Properties.Settings.Default.LastDate.AddDays(1);
+            }
+            else
+            {
+                startDate = endDate;
+            }
+
+            if (startDate > endDate)
+                startDate = endDate;
+
+            dateTimePickerFrom.Value = startDate;
+            dateTimePickerTo.Value = endDate;
         }
 
         private class UserInteraction : IUserInteraction
@@ -60,18 +77,46 @@ namespace TemperatureClient
             }
         }
 
-        private async void button1_Click(object sender, EventArgs e)
+        private async void buttonGo_Click(object sender, EventArgs e)
         {
-            var wu = new WeatherUnderground(textBoxLocation.Text, new UserInteraction(this.textBoxLog));
+            buttonGo.Enabled = false;
+            try
+            {
+                var wu = new WeatherUnderground(textBoxLocation.Text, new UserInteraction(this.textBoxLog));
+                List<WeatherInformation> weatherInformation = new List<WeatherInformation>();
+                DateTime workingDate = dateTimePickerFrom.Value;
+                DateTime endDate = dateTimePickerTo.Value;
 
-            var info = await wu.ReadWeatherInformation(new DateTime(2018, 9, 12));
+                while (workingDate <= endDate)
+                {
+                    var info = await wu.ReadWeatherInformation(workingDate);
 
-            MessageBox.Show(info?.AverageDaytimeDegrees.ToString());
+                    if (info == null)
+                    {
+                        return;
+                    }
+                    else
+                    {
+                        weatherInformation.Add(info);
+                        workingDate = workingDate.AddDays(1);
+                    }
+                }
+
+
+
+                MessageBox.Show(info?.AverageDaytimeDegrees.ToString());
+            }
+            finally
+            {
+                buttonGo.Enabled = true;
+            }
+
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            TemperatureClient.Properties.Settings.Default.Save();
+            Properties.Settings.Default.LastDate = dateTimePickerTo.Value;
+            Properties.Settings.Default.Save();
         }
     }
 }
