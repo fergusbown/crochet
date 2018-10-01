@@ -68,5 +68,10 @@ namespace TemperatureClient
 
             MessageBox.Show(info?.AverageDaytimeDegrees.ToString());
         }
+
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            TemperatureClient.Properties.Settings.Default.Save();
+        }
     }
 }
