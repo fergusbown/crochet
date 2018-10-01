@@ -54,6 +54,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IUserInteraction.cs" />
     <Compile Include="WeatherInformation.cs" />
     <Compile Include="WeatherUnderground.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

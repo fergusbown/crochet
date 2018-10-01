@@ -12,52 +12,39 @@ namespace FF.Temperature.Lib
     public class WeatherUnderground
     {
         private readonly string location;
+        private readonly IUserInteraction userInteraction;
         private const string observationTableXPath = "//div[contains(@class, 'observation-table')]//table";
         private const string summaryTableXPath = "//div[contains(@class, 'summary-table')]//table";
 
 
-        public WeatherUnderground(string location)
+        public WeatherUnderground(string location, IUserInteraction userInteraction)
         {
             this.location = location;
+            this.userInteraction = userInteraction;
         }
 
         private bool IsDocumentFullyLoaded(HtmlDocument htmlDocument, out int remaining)
         {
-            remaining = 24;
+            bool readingsComplete = GetReadings(htmlDocument, DateTime.Today, out List<WeatherReading> readings, out int readingsRemaining);
+            bool daytimeComplete = GetDaytimeInformation(htmlDocument, DateTime.Today, out DateTime sunrise, out DateTime sunset, out int daytimeRemaining);
+            remaining = readingsRemaining + daytimeRemaining;
+            return readingsComplete && daytimeComplete;
 
-            if (!GetDaytimeInformation(htmlDocument, DateTime.Today, out DateTime sunrise, out DateTime sunset))
-            {
-                return false;
-            }
-
-            List<WeatherReading> readings = GetReadings(htmlDocument, DateTime.Today);
-
-            if (readings == null)
-            {
-                return false;
-            }
-
-            remaining = readings.Where(r => r == null).Count();
-
-            if (remaining > 0)
-                return false;
-
-            if (readings.Any())
-            {
-                return true;
-            }
-
-            return false;
         }
 
-        private List<WeatherReading> GetReadings(HtmlDocument htmlDocument, DateTime date)
+        private bool GetReadings(HtmlDocument htmlDocument, DateTime date, out List<WeatherReading> readings, out int remaining)
         {
             var observationTable = htmlDocument.DocumentNode.SelectSingleNode(observationTableXPath);
 
             if (observationTable == null)
-                return null;
+            {
+                readings = null;
+                remaining = 24;
+                return false;
+            }
 
-            List<WeatherReading> readings = new List<WeatherReading>();
+            readings = new List<WeatherReading>();
+            remaining = 0;
 
             foreach (var row in observationTable.SelectNodes("tbody/tr"))
             {
@@ -65,7 +52,7 @@ namespace FF.Temperature.Lib
 
                 if (cells == null)
                 {
-                    readings.Add(null);
+                    remaining++;
                 }
                 else
                 {
@@ -76,7 +63,7 @@ namespace FF.Temperature.Lib
 
                     if (String.IsNullOrWhiteSpace(timeText))
                     {
-                        readings.Add(null);
+                        remaining++;
                     }
                     else
                     {
@@ -88,7 +75,7 @@ namespace FF.Temperature.Lib
                 }
             }
 
-            return readings;
+            return remaining == 0 && readings.Any();
         }
 
         private static DateTime ParseSunTime(DateTime date, string timeText)
@@ -96,7 +83,7 @@ namespace FF.Temperature.Lib
             return date.Date + DateTime.ParseExact(timeText, "h:m tt", CultureInfo.InvariantCulture).TimeOfDay;
         }
 
-        private bool GetDaytimeInformation(HtmlDocument htmlDocument, DateTime date, out DateTime sunrise, out DateTime sunset)
+        private bool GetDaytimeInformation(HtmlDocument htmlDocument, DateTime date, out DateTime sunrise, out DateTime sunset, out int remaining)
         {
             var summaryTable = htmlDocument.DocumentNode.SelectSingleNode(summaryTableXPath);
 
@@ -106,13 +93,14 @@ namespace FF.Temperature.Lib
             {
                 sunrise = default(DateTime);
                 sunset = default(DateTime);
+                remaining = 2;
                 return false;
             }
             else
             {
                 var sunriseText = timeCells[1].InnerText.Trim();
                 var sunsetText = timeCells[2].InnerText.Trim();
-
+                remaining = 0;
                 sunrise = ParseSunTime(date, sunriseText);
                 sunset = ParseSunTime(date, sunsetText);
                 return true;
@@ -124,11 +112,21 @@ namespace FF.Temperature.Lib
         {
             string url = $"https://www.wunderground.com/history/daily/gb/{location}/EGKA/date/{date.ToString("yyyy-M-d")}";
 
-            var htmlDocument = await WebBrowserRequest.Navigate(url, IsDocumentFullyLoaded);
+            var htmlDocument = await WebBrowserRequest.Navigate(url, IsDocumentFullyLoaded, this.userInteraction);
 
-            GetDaytimeInformation(htmlDocument, date, out DateTime sunrise, out DateTime sunset);
+            if (GetReadings(htmlDocument, date, out List<WeatherReading> readings, out int dummy)
+                && GetDaytimeInformation(htmlDocument, date, out DateTime sunrise, out DateTime sunset, out int dummy2))
+            {
+                return new WeatherInformation(
+                    sunrise,
+                    sunset,
+                    readings);
 
-            return new WeatherInformation(sunrise, sunset, GetReadings(htmlDocument, date));
+            }
+            else
+            {
+                return null;
+            }
         }
     }
 }
