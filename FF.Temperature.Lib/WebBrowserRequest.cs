@@ -10,11 +10,12 @@ namespace FF.Temperature.Lib
 {
     internal delegate bool IsDocumentFullyLoaded(HtmlAgilityPack.HtmlDocument htmlDocument, out int remaining);
 
-    internal class WebBrowserRequest
+    internal sealed class WebBrowserRequest : IDisposable
     {
         private const int maxSilentAttempts = 2;
+        private const int maxTimeout = 32000;
 
-        private readonly WebBrowser browser;
+        private readonly IWebBrowser browser;
         private readonly IsDocumentFullyLoaded isDocumentFullyLoaded;
         private readonly string url;
         private readonly IUserInteraction userInteraction;
@@ -24,18 +25,15 @@ namespace FF.Temperature.Lib
 
         private readonly HtmlAgilityPack.HtmlDocument htmlDocument;
 
-        private int lastRemaining;
-        private int lastCompletedCount;
-        private int completedCount;
-        private int numberOfAttempts;
-        private bool finished;
-
         private string description => this.url;
 
-        private WebBrowserRequest(string url, IsDocumentFullyLoaded isDocumentFullyLoaded, IUserInteraction userInteraction)
+        private WebBrowserRequest(
+            IWebBrowser browser,
+            string url, 
+            IsDocumentFullyLoaded isDocumentFullyLoaded, 
+            IUserInteraction userInteraction)
         {
-            this.browser = new WebBrowser();
-            this.browser.ScriptErrorsSuppressed = true;
+            this.browser = browser;
             this.browser.DocumentCompleted += Browser_DocumentCompleted;
             this.isDocumentFullyLoaded = isDocumentFullyLoaded;
             this.url = url;
@@ -46,104 +44,84 @@ namespace FF.Temperature.Lib
             this.lockObject = new object();
         }
 
-        private void Browser_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
+        private void Browser_DocumentCompleted(object sender, EventArgs e)
         {
-            RefreshDocument(completing:true);
+            this.userInteraction.Log($"Document completed for {this.description}");
+            this.manualResetEvent.Set();
         }
 
         private void Finish(string finishType)
         {
-            this.finished = true;
             this.userInteraction.Log($"{finishType} '{this.description}'");
             this.browser.Stop();
-            this.manualResetEvent.Set();
         }
 
-        private void RefreshDocument(bool completing)
+        private bool RefreshDocument()
         {
-            if (this.browser.InvokeRequired)
+            this.htmlDocument.LoadHtml(this.browser.Html);
+
+            int remaining;
+
+            if (this.isDocumentFullyLoaded(this.htmlDocument, out remaining))
             {
-                Action action = () => this.RefreshDocument(completing);
-                this.browser.Invoke(action);
+                return true;
             }
             else
             {
-                if (finished)
-                    return;
-
-                string html = this.browser.Document?.Body?.OuterHtml ?? string.Empty;
-
-                this.htmlDocument.LoadHtml(html);
-
-                int remaining;
-
-                if (this.isDocumentFullyLoaded(this.htmlDocument, out remaining))
-                {
-                    Finish("Finished");
-                    return;
-                }
-
                 this.userInteraction.Log($"{remaining} readings remaining for '{this.description}'");
-
-                if (completing)
-                {
-                    completedCount++;
-                    return;
-                }
-
-                if (completedCount != lastCompletedCount)
-                {
-                    lastCompletedCount = completedCount;
-                    return;
-                }
-
-                if (this.lastRemaining == remaining)
-                {
-                    this.lastRemaining = 0;
-                    this.numberOfAttempts++;
-
-                    bool tryAgain = (this.numberOfAttempts % maxSilentAttempts != 0) 
-                        || this.userInteraction.ShouldContinue($"{numberOfAttempts} attempts made to load '{this.description}' - try again?");
-
-                    if (tryAgain)
-                    {
-                        this.userInteraction.Log($"Attempting '{this.description}' again");
-                        this.browser.Navigate(this.url);
-                    }
-                    else
-                    {
-                        Finish("Cancelled");
-                        return;
-                    }
-                }
-                else
-                {
-                    this.lastRemaining = remaining;
-                }
+                return false;
             }
         }
 
         private async Task<HtmlAgilityPack.HtmlDocument> Navigate()
         {
-            this.userInteraction.Log($"Processing '{this.description}'");
-
             this.manualResetEvent.Reset();
-            this.browser.Navigate(this.url);
 
             await Task.Factory.StartNew(() =>
             {
-                int completedCount = 0;
-                while (!this.manualResetEvent.WaitOne(2000))
+                bool tryAgain = true;
+                bool finished = false;
+                int attempts = 0;
+
+                while (tryAgain && !finished)
                 {
-                    if (completedCount == lastCompletedCount)
+                    int timeout = 2000;
+
+                    this.userInteraction.Log($"Processing '{this.description}' (attempt {attempts + 1})");
+                    this.browser.Navigate(this.url);
+
+                    while (!finished && timeout <= maxTimeout)
                     {
-                        RefreshDocument(completing: false);
+                        while (this.manualResetEvent.WaitOne(timeout))
+                        {
+                            this.manualResetEvent.Reset();
+                        }
+
+                        if (RefreshDocument())
+                        {
+                            finished = true;
+                        }
+                        else
+                        {
+                            timeout *= 2;
+                        }
+                    }
+
+                    if (finished)
+                    {
+                        Finish("Finished");
                     }
                     else
                     {
-                        completedCount = lastCompletedCount;
+                        Finish("Cancelled");
+
+                        attempts++;
+
+                        tryAgain = (attempts % maxSilentAttempts != 0)
+                            || this.userInteraction.ShouldContinue($"{attempts} attempts made for {this.description}.  Try again?");
                     }
                 }
+
             });
 
             return this.htmlDocument;
@@ -154,8 +132,39 @@ namespace FF.Temperature.Lib
             IsDocumentFullyLoaded isDocumentFullyLoaded,
             IUserInteraction userInteraction)
         {
-            var request = new WebBrowserRequest(url, isDocumentFullyLoaded, userInteraction);
-            return await request.Navigate();
+            var browser = new WebBrowserWrapper();
+            //var browser = new EOWebBrowserWrapper();
+
+            using (var request = new WebBrowserRequest(browser, url, isDocumentFullyLoaded, userInteraction))
+            {
+                return await request.Navigate();
+            }
         }
+
+        #region IDisposable Support
+
+        private bool disposedValue = false; // To detect redundant calls
+
+        void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    this.browser.Dispose();
+                    this.manualResetEvent.Dispose();
+                }
+
+                disposedValue = true;
+            }
+        }
+
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(true);
+        }
+        #endregion
     }
 }

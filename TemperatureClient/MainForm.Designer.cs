@@ -52,12 +52,12 @@
             // 
             this.textBoxLog.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBoxLog.Location = new System.Drawing.Point(12, 264);
+            this.textBoxLog.Location = new System.Drawing.Point(12, 262);
             this.textBoxLog.Multiline = true;
             this.textBoxLog.Name = "textBoxLog";
             this.textBoxLog.ReadOnly = true;
             this.textBoxLog.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.textBoxLog.Size = new System.Drawing.Size(775, 174);
+            this.textBoxLog.Size = new System.Drawing.Size(761, 174);
             this.textBoxLog.TabIndex = 1;
             this.textBoxLog.WordWrap = false;
             // 
@@ -112,7 +112,7 @@
             this.textBoxResult.Name = "textBoxResult";
             this.textBoxResult.ReadOnly = true;
             this.textBoxResult.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.textBoxResult.Size = new System.Drawing.Size(775, 219);
+            this.textBoxResult.Size = new System.Drawing.Size(761, 217);
             this.textBoxResult.TabIndex = 7;
             this.textBoxResult.WordWrap = false;
             // 
@@ -120,7 +120,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.ClientSize = new System.Drawing.Size(786, 448);
             this.Controls.Add(this.textBoxResult);
             this.Controls.Add(this.dateTimePickerTo);
             this.Controls.Add(this.label2);

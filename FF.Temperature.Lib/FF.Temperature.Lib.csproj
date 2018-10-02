@@ -54,11 +54,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CefWebBrowserWrapper.cs" />
+    <Compile Include="EOWebBrowserWrapper.cs" />
     <Compile Include="IUserInteraction.cs" />
+    <Compile Include="IWebBrowser.cs" />
     <Compile Include="WeatherInformation.cs" />
     <Compile Include="WeatherUnderground.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="WebBrowserRequest.cs" />
+    <Compile Include="WebBrowserWrapper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

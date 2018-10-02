@@ -53,7 +53,7 @@ namespace TemperatureClient
                 }
                 else
                 {
-                    this.log.AppendText(message + Environment.NewLine);
+                    this.log.AppendText($"({DateTime.Now.TimeOfDay}){message}{Environment.NewLine}");
                 }
             }
 
@@ -102,15 +102,26 @@ namespace TemperatureClient
                     }
                 }
 
-
-
-                MessageBox.Show(info?.AverageDaytimeDegrees.ToString());
+                ProcessResult(weatherInformation);
             }
             finally
             {
                 buttonGo.Enabled = true;
             }
 
+        }
+
+        private void ProcessResult(List<WeatherInformation> weatherInformation)
+        {
+            StringBuilder result = new StringBuilder();
+
+            foreach (var info in weatherInformation)
+            {
+                result.AppendLine($"{info.Sunrise.Year}\\{info.Sunrise.Month}\\{info.Sunrise.Day}\t{info.AverageDaytimeDegrees}");
+            }
+
+            textBoxResult.Text = result.ToString();
+            Clipboard.SetText(result.ToString());
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
