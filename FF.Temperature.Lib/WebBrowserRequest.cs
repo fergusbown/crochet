@@ -9,34 +9,36 @@ using System.Windows.Forms;
 namespace FF.Temperature.Lib
 {
     internal delegate bool IsDocumentFullyLoaded(HtmlAgilityPack.HtmlDocument htmlDocument, out int remaining);
+    internal delegate string GetUrl(int attempt);
 
     internal sealed class WebBrowserRequest : IDisposable
     {
         private const int maxSilentAttempts = 2;
-        private const int maxTimeout = 32000;
-
+        private const int initialTimeout = 4000;
+        private const int maxTimeout = 16000;
+        private readonly GetUrl getUrl;
         private readonly IWebBrowser browser;
         private readonly IsDocumentFullyLoaded isDocumentFullyLoaded;
-        private readonly string url;
+
         private readonly IUserInteraction userInteraction;
-        private readonly ManualResetEvent manualResetEvent;
+        private ManualResetEvent manualResetEvent;
 
         private readonly object lockObject;
 
         private readonly HtmlAgilityPack.HtmlDocument htmlDocument;
 
-        private string description => this.url;
+        private string description;
 
         private WebBrowserRequest(
             IWebBrowser browser,
-            string url, 
+            GetUrl getUrl, 
             IsDocumentFullyLoaded isDocumentFullyLoaded, 
             IUserInteraction userInteraction)
         {
             this.browser = browser;
             this.browser.DocumentCompleted += Browser_DocumentCompleted;
             this.isDocumentFullyLoaded = isDocumentFullyLoaded;
-            this.url = url;
+            this.getUrl = getUrl;
             this.userInteraction = userInteraction;
 
             this.manualResetEvent = new ManualResetEvent(false);
@@ -47,7 +49,7 @@ namespace FF.Temperature.Lib
         private void Browser_DocumentCompleted(object sender, EventArgs e)
         {
             this.userInteraction.Log($"Document completed for {this.description}");
-            this.manualResetEvent.Set();
+            this.manualResetEvent?.Set();
         }
 
         private void Finish(string finishType)
@@ -58,7 +60,8 @@ namespace FF.Temperature.Lib
 
         private bool RefreshDocument()
         {
-            this.htmlDocument.LoadHtml(this.browser.Html);
+            string html = this.browser.Html;
+            this.htmlDocument.LoadHtml(html);
 
             int remaining;
 
@@ -85,10 +88,18 @@ namespace FF.Temperature.Lib
 
                 while (tryAgain && !finished)
                 {
-                    int timeout = 2000;
+                    int timeout = initialTimeout;
+
+                    this.description = this.getUrl(attempts);
 
                     this.userInteraction.Log($"Processing '{this.description}' (attempt {attempts + 1})");
-                    this.browser.Navigate(this.url);
+
+                    if (attempts > 0)
+                    {
+                        this.browser.Navigate("www.google.com");
+                    }
+
+                    this.browser.Navigate(this.description);
 
                     while (!finished && timeout <= maxTimeout)
                     {
@@ -128,14 +139,12 @@ namespace FF.Temperature.Lib
         }
 
         public static async Task<HtmlAgilityPack.HtmlDocument> Navigate(
-            string url, 
+            GetUrl getUrl, 
             IsDocumentFullyLoaded isDocumentFullyLoaded,
-            IUserInteraction userInteraction)
+            IUserInteraction userInteraction,
+            IWebBrowser browser)
         {
-            var browser = new WebBrowserWrapper();
-            //var browser = new EOWebBrowserWrapper();
-
-            using (var request = new WebBrowserRequest(browser, url, isDocumentFullyLoaded, userInteraction))
+            using (var request = new WebBrowserRequest(browser, getUrl, isDocumentFullyLoaded, userInteraction))
             {
                 return await request.Navigate();
             }
@@ -151,8 +160,10 @@ namespace FF.Temperature.Lib
             {
                 if (disposing)
                 {
-                    this.browser.Dispose();
-                    this.manualResetEvent.Dispose();
+                    this.browser.DocumentCompleted -= Browser_DocumentCompleted;
+                    var mre = this.manualResetEvent;
+                    this.manualResetEvent = null;
+                    mre.Dispose();
                 }
 
                 disposedValue = true;

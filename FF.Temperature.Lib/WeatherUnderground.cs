@@ -13,14 +13,16 @@ namespace FF.Temperature.Lib
     {
         private readonly string location;
         private readonly IUserInteraction userInteraction;
+        private readonly IWebBrowser browser;
         private const string observationTableXPath = "//div[contains(@class, 'observation-table')]//table";
         private const string summaryTableXPath = "//div[contains(@class, 'summary-table')]//table";
 
 
-        public WeatherUnderground(string location, IUserInteraction userInteraction)
+        public WeatherUnderground(string location, IUserInteraction userInteraction, IWebBrowser browser)
         {
             this.location = location;
             this.userInteraction = userInteraction;
+            this.browser = browser;
         }
 
         private bool IsDocumentFullyLoaded(HtmlDocument htmlDocument, out int remaining)
@@ -30,6 +32,11 @@ namespace FF.Temperature.Lib
             remaining = readingsRemaining + daytimeRemaining;
             return readingsComplete && daytimeComplete;
 
+        }
+
+        private string NullIfEmpty(string value)
+        {
+            return String.IsNullOrWhiteSpace(value) ? null : value;
         }
 
         private bool GetReadings(HtmlDocument htmlDocument, DateTime date, out List<WeatherReading> readings, out int remaining)
@@ -58,16 +65,28 @@ namespace FF.Temperature.Lib
                 {
                     var timeText = cells[0].InnerText.Trim();
                     var temperatureText = cells[1].InnerText.Trim();
-                    timeText = Regex.Match(timeText, @"\d\d:\d\d:\d\d").Value;
+
+                    var timeText24h = NullIfEmpty(Regex.Match(timeText, @"\d\d:\d\d:\d\d").Value);
+                    var timeText12h = NullIfEmpty(Regex.Match(timeText, @"[\d]+:[\d]+ [A|P]M").Value);
+
                     temperatureText = Regex.Match(temperatureText, @"[\d]+").Value;
 
-                    if (String.IsNullOrWhiteSpace(timeText))
+                    if (String.IsNullOrWhiteSpace(timeText24h ?? timeText12h))
                     {
                         remaining++;
                     }
                     else
                     {
-                        var readingTime = date.Date + DateTime.ParseExact(timeText, "HH:mm:ss", CultureInfo.InvariantCulture).TimeOfDay;
+                        DateTime readingTime;
+                        if (string.IsNullOrEmpty(timeText12h))
+                        {
+                            readingTime = date.Date + DateTime.ParseExact(timeText, "HH:mm:ss", CultureInfo.InvariantCulture).TimeOfDay;
+                        }
+                        else
+                        {
+                            readingTime = ParseSunTime(date.Date, timeText12h);
+                        }
+
                         var readingTemperature = int.Parse(temperatureText);
 
                         readings.Add(WeatherReading.FromFarenheit(readingTime, readingTemperature));
@@ -110,9 +129,19 @@ namespace FF.Temperature.Lib
 
         public async Task<WeatherInformation> ReadWeatherInformation(DateTime date)
         {
-            string url = $"https://www.wunderground.com/history/daily/gb/{location}/EGKA/date/{date.ToString("yyyy-M-d")}";
+            GetUrl getUrl = (attempts) =>
+            {
+                if (attempts % 2 == 0)
+                {
+                    return $"https://www.wunderground.com/history/daily/gb/{location}/EGKK/date/{date.ToString("yyyy-M-d")}";
+                }
+                else
+                {
+                    return $"https://www.wunderground.com/history/daily/gb/{location}/EGKA/date/{date.ToString("yyyy-M-d")}";
+                }
+            };
 
-            var htmlDocument = await WebBrowserRequest.Navigate(url, IsDocumentFullyLoaded, this.userInteraction);
+            var htmlDocument = await WebBrowserRequest.Navigate(getUrl, IsDocumentFullyLoaded, this.userInteraction, this.browser);
 
             if (GetReadings(htmlDocument, date, out List<WeatherReading> readings, out int dummy)
                 && GetDaytimeInformation(htmlDocument, date, out DateTime sunrise, out DateTime sunset, out int dummy2))

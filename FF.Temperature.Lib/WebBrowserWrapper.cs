@@ -11,9 +11,9 @@ namespace FF.Temperature.Lib
     {
         private readonly WebBrowser browser;
 
-        public WebBrowserWrapper()
+        public WebBrowserWrapper(WebBrowser browser)
         {
-            browser = new WebBrowser();
+            this.browser = browser;
             browser.ScriptErrorsSuppressed = true;
             browser.DocumentCompleted += Browser_DocumentCompleted;
         }
@@ -27,50 +27,20 @@ namespace FF.Temperature.Lib
         {
             get
             {
-                if (this.browser.InvokeRequired)
-                {
-                    Func<string> getHtml = () => this.Html;
-                    return (string)this.browser.Invoke(getHtml);
-                }
-                else
-                {
-                    return this.browser.Document?.Body?.OuterHtml ?? String.Empty;
-                }
+                return this.browser.Document?.Body?.OuterHtml ?? String.Empty;
             }
         }
 
         public event EventHandler DocumentCompleted;
 
-        public void Dispose()
-        {
-            this.browser.DocumentCompleted -= Browser_DocumentCompleted;
-            this.browser.Dispose();
-        }
-
         public void Navigate(string url)
         {
-            if (this.browser.InvokeRequired)
-            {
-                Action invoke = () => this.Navigate(url);
-                this.browser.Invoke(invoke);
-            }
-            else
-            {
-                this.browser.Navigate(url);
-            }
+            this.browser.Navigate(url);
         }
 
         public void Stop()
         {
-            if (this.browser.InvokeRequired)
-            {
-                Action invoke = () => this.Stop();
-                this.browser.Invoke(invoke);
-            }
-            else
-            {
-                this.browser.Stop();
-            }
+            this.browser.Stop();
         }
     }
 }

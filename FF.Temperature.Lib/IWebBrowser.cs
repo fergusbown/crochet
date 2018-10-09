@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FF.Temperature.Lib
 {
-    public interface IWebBrowser : IDisposable
+    public interface IWebBrowser
     {
         void Navigate(string url);
 

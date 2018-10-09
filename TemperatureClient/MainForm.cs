@@ -13,10 +13,17 @@ namespace TemperatureClient
 {
     public partial class MainForm : Form
     {
+        private readonly IWebBrowser browser;
         public MainForm()
         {
             InitializeComponent();
+            //this.browser = new InvokingWebBrowser(this, new WebBrowserWrapper(this.webBrowser));
+            this.browser = new EOWebBrowserWrapper(this.webControl, this.webView1);
+            InitializeDates();
+        }
 
+        private void InitializeDates()
+        {
             DateTime endDate = DateTime.Today.AddDays(-1);
             DateTime startDate;
             if (Properties.Settings.Default.LastDate.Ticks > 0)
@@ -53,7 +60,7 @@ namespace TemperatureClient
                 }
                 else
                 {
-                    this.log.AppendText($"({DateTime.Now.TimeOfDay}){message}{Environment.NewLine}");
+                    this.log.AppendText($"({DateTime.Now.ToString("HH:mm:ss")}){message}{Environment.NewLine}");
                 }
             }
 
@@ -82,10 +89,14 @@ namespace TemperatureClient
             buttonGo.Enabled = false;
             try
             {
-                var wu = new WeatherUnderground(textBoxLocation.Text, new UserInteraction(this.textBoxLog));
+                var wu = new WeatherUnderground(textBoxLocation.Text, new UserInteraction(this.textBoxLog), this.browser);
                 List<WeatherInformation> weatherInformation = new List<WeatherInformation>();
                 DateTime workingDate = dateTimePickerFrom.Value;
                 DateTime endDate = dateTimePickerTo.Value;
+
+                int requestCount = (endDate - workingDate).Days + 1;
+
+                this.progressBar1.Maximum = requestCount;
 
                 while (workingDate <= endDate)
                 {
@@ -99,16 +110,19 @@ namespace TemperatureClient
                     {
                         weatherInformation.Add(info);
                         workingDate = workingDate.AddDays(1);
+                        this.progressBar1.Value++;
                     }
                 }
 
                 ProcessResult(weatherInformation);
+                Properties.Settings.Default.LastDate = dateTimePickerTo.Value;
+                InitializeDates();
             }
             finally
             {
                 buttonGo.Enabled = true;
+                this.progressBar1.Value = 0;
             }
-
         }
 
         private void ProcessResult(List<WeatherInformation> weatherInformation)
@@ -122,11 +136,18 @@ namespace TemperatureClient
 
             textBoxResult.Text = result.ToString();
             Clipboard.SetText(result.ToString());
+
+            MessageBox.Show(
+                this,
+                "Copied results to clipboard",
+                "Temperature Data",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information,
+                MessageBoxDefaultButton.Button1);
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            Properties.Settings.Default.LastDate = dateTimePickerTo.Value;
             Properties.Settings.Default.Save();
         }
     }

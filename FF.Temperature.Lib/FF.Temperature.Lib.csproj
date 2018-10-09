@@ -54,8 +54,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CefWebBrowserWrapper.cs" />
     <Compile Include="EOWebBrowserWrapper.cs" />
+    <Compile Include="InvokingWebBrowser.cs" />
     <Compile Include="IUserInteraction.cs" />
     <Compile Include="IWebBrowser.cs" />
     <Compile Include="WeatherInformation.cs" />
