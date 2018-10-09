@@ -139,7 +139,7 @@ namespace TemperatureClient
 
             MessageBox.Show(
                 this,
-                "Copied results to clipboard",
+                "Copied results to clipboard and results tab",
                 "Temperature Data",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information,
