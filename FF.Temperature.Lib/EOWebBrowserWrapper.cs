@@ -19,6 +19,12 @@ namespace FF.Temperature.Lib
             this.webView = webView;
             this.webView.SetOptions(new EO.WebEngine.BrowserOptions() { AllowJavaScript = true });
             this.webView.LoadCompleted += WebView_LoadCompleted;
+            this.webView.CertificateError += WebView_CertificateError;
+        }
+
+        private void WebView_CertificateError(object sender, CertificateErrorEventArgs e)
+        {
+            //don't care
         }
 
         public string Html
