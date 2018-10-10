@@ -131,7 +131,7 @@ namespace TemperatureClient
 
             foreach (var info in weatherInformation)
             {
-                result.AppendLine($"{info.Sunrise.Year}\\{info.Sunrise.Month}\\{info.Sunrise.Day}\t{info.AverageDaytimeDegrees}");
+                result.AppendLine($"{info.Sunrise.Year}-{info.Sunrise.Month}-{info.Sunrise.Day}\t{info.AverageDaytimeDegrees}");
             }
 
             textBoxResult.Text = result.ToString();
