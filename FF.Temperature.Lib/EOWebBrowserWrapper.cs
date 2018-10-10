@@ -24,7 +24,7 @@ namespace FF.Temperature.Lib
 
         private void WebView_CertificateError(object sender, CertificateErrorEventArgs e)
         {
-            //don't care
+            e.Continue();
         }
 
         public string Html
