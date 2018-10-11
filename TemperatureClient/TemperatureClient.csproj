@@ -156,9 +156,13 @@
   </Target>
   
   <Target Name="PackageRelease" AfterTargets="CoreBuild" >
-	<Message Importance="High" Text="Hello from $(SolutionDir) $(GitVersion_MajorMinorPatch) $(MSBuildProjectDirectory)\$(OutputPath)" />
+	<ItemGroup>
+		<BinFiles Include="$(MSBuildProjectDirectory)\$(OutputPath)\**\*.*" />
+	</ItemGroup>
 	
-	
+	<Zip Files="@(BinFiles)" 
+		WorkingDirectory="$(SolutionDir)\bin" 
+		ZipFileName="$(SolutionDir)\bin\$(MSBuildProjectName).$(Configuration).$(GitVersion_MajorMinorPatch).zip" />
   </Target>
   
   <Import Project="..\packages\CefSharp.Common.67.0.0\build\CefSharp.Common.targets" Condition="Exists('..\packages\CefSharp.Common.67.0.0\build\CefSharp.Common.targets')" />

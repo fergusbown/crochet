@@ -117,5 +117,16 @@
     <Error Condition="!Exists('..\packages\GitVersionTask.3.6.5\build\dotnet\GitVersionTask.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\GitVersionTask.3.6.5\build\dotnet\GitVersionTask.targets'))" />
     <Error Condition="!Exists('..\packages\MSBuildTasks.1.5.0.235\build\MSBuildTasks.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MSBuildTasks.1.5.0.235\build\MSBuildTasks.targets'))" />
   </Target>
+  
+  <Target Name="PackageRelease" AfterTargets="CoreBuild" >
+	<ItemGroup>
+		<BinFiles Include="$(MSBuildProjectDirectory)\$(OutputPath)\**\*.*" />
+	</ItemGroup>
+	
+	<Zip Files="@(BinFiles)" 
+		WorkingDirectory="$(SolutionDir)\bin" 
+		ZipFileName="$(SolutionDir)\bin\$(MSBuildProjectName).$(Configuration).$(GitVersion_MajorMinorPatch).zip" />
+  </Target>
+  
   <Import Project="..\packages\MSBuildTasks.1.5.0.235\build\MSBuildTasks.targets" Condition="Exists('..\packages\MSBuildTasks.1.5.0.235\build\MSBuildTasks.targets')" />
 </Project>
