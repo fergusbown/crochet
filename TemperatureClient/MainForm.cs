@@ -1,4 +1,5 @@
-﻿using FF.Temperature.Lib;
+﻿using CefSharp.WinForms;
+using FF.Temperature.Lib;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -13,12 +14,16 @@ namespace TemperatureClient
 {
     public partial class MainForm : Form
     {
+        private readonly ChromiumWebBrowser chromiumBrowser;
         private readonly IWebBrowser browser;
         public MainForm()
         {
             InitializeComponent();
+            this.chromiumBrowser = new ChromiumWebBrowser(String.Empty);
+            this.tabPageCefBrowser.Controls.Add(this.chromiumBrowser);
+            this.chromiumBrowser.Dock = DockStyle.Fill;
             //this.browser = new InvokingWebBrowser(this, new WebBrowserWrapper(this.webBrowser));
-            this.browser = new EOWebBrowserWrapper(this.webControl, this.webView1);
+            this.browser = new CefBrowserWrapper(this.chromiumBrowser);
             InitializeDates();
         }
 

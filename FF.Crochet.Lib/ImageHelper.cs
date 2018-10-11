@@ -11,22 +11,6 @@ namespace FF.Crochet.Lib
 {
     public static class ImageHelper
     {
-        private static Bitmap CropImage(Image image, Rectangle cropRectangle)
-        {
-            Bitmap target = new Bitmap(cropRectangle.Width, cropRectangle.Height);
-
-            using (Graphics g = Graphics.FromImage(target))
-            {
-                g.DrawImage(
-                    image, 
-                    new Rectangle(0, 0, target.Width, target.Height),
-                    cropRectangle,
-                    GraphicsUnit.Pixel);
-            }
-
-            return target;
-        }
-
         private static Bitmap ResizeImage(Image image, Rectangle? imageRect, int width, int height)
         {
             var destRect = new Rectangle(0, 0, width, height);
