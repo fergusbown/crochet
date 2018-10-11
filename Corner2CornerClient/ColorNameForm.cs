@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace CrochetClient
+namespace Corner2CornerClient
 {
     public partial class ColorNameForm : Form
     {

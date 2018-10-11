@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using FF.Crochet.Lib;
 
-namespace CrochetClient
+namespace Corner2CornerClient
 {
     public partial class PaletteItem : UserControl, IPaletteItem
     {

@@ -1,4 +1,4 @@
-﻿namespace CrochetClient
+﻿namespace Corner2CornerClient
 {
     partial class ColorNameForm
     {

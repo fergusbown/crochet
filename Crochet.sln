@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27924.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrochetClient", "CrochetClient\CrochetClient.csproj", "{9198FCBC-3BF8-42EA-AE71-486DB1FE3009}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Corner2CornerClient", "Corner2CornerClient\Corner2CornerClient.csproj", "{9198FCBC-3BF8-42EA-AE71-486DB1FE3009}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FF.Crochet.Lib", "FF.Crochet.Lib\FF.Crochet.Lib.csproj", "{03A93B1D-983F-49C2-9D86-5E97E529AE03}"
 EndProject
