@@ -28,6 +28,8 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.textBoxLog = new System.Windows.Forms.TextBox();
             this.panel1 = new System.Windows.Forms.Panel();
             this.dateTimePickerTo = new System.Windows.Forms.DateTimePicker();
@@ -41,6 +43,7 @@
             this.tabControl = new System.Windows.Forms.TabControl();
             this.tabPageCefBrowser = new System.Windows.Forms.TabPage();
             this.progressBar1 = new System.Windows.Forms.ProgressBar();
+            this.toolTipLocation = new System.Windows.Forms.ToolTip(this.components);
             this.panel1.SuspendLayout();
             this.tabPageResults.SuspendLayout();
             this.tabControl.SuspendLayout();
@@ -106,12 +109,13 @@
             // 
             // textBoxLocation
             // 
-            this.textBoxLocation.DataBindings.Add(new System.Windows.Forms.Binding("Text", global::TemperatureClient.Properties.Settings.Default, "Location", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
+            this.textBoxLocation.DataBindings.Add(new System.Windows.Forms.Binding("Text", global::TemperatureClient.Properties.Settings.Default, "StationLocation", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
             this.textBoxLocation.Location = new System.Drawing.Point(69, 14);
             this.textBoxLocation.Name = "textBoxLocation";
             this.textBoxLocation.Size = new System.Drawing.Size(135, 20);
             this.textBoxLocation.TabIndex = 8;
-            this.textBoxLocation.Text = global::TemperatureClient.Properties.Settings.Default.Location;
+            this.textBoxLocation.Text = global::TemperatureClient.Properties.Settings.Default.StationLocation;
+            this.toolTipLocation.SetToolTip(this.textBoxLocation, resources.GetString("textBoxLocation.ToolTip"));
             // 
             // buttonGo
             // 
@@ -211,6 +215,7 @@
         private System.Windows.Forms.TabControl tabControl;
         private System.Windows.Forms.ProgressBar progressBar1;
         private System.Windows.Forms.TabPage tabPageCefBrowser;
+        private System.Windows.Forms.ToolTip toolTipLocation;
     }
 }
 

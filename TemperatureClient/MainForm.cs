@@ -25,6 +25,10 @@ namespace TemperatureClient
             //this.browser = new InvokingWebBrowser(this, new WebBrowserWrapper(this.webBrowser));
             this.browser = new CefBrowserWrapper(this.chromiumBrowser);
             InitializeDates();
+
+            this.toolTipLocation.SetToolTip(
+                this.label1,
+                this.toolTipLocation.GetToolTip(this.textBoxLocation));
         }
 
         private void InitializeDates()

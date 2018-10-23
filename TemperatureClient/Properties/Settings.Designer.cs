@@ -25,13 +25,13 @@ namespace TemperatureClient.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("brighton")]
-        public string Location {
+        [global::System.Configuration.DefaultSettingValueAttribute("EGKA")]
+        public string StationLocation {
             get {
-                return ((string)(this["Location"]));
+                return ((string)(this["StationLocation"]));
             }
             set {
-                this["Location"] = value;
+                this["StationLocation"] = value;
             }
         }
         

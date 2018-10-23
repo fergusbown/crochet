@@ -131,14 +131,7 @@ namespace FF.Temperature.Lib
         {
             GetUrl getUrl = (attempts) =>
             {
-                if (attempts % 2 == 0)
-                {
-                    return $"https://www.wunderground.com/history/daily/gb/{location}/EGKK/date/{date.ToString("yyyy-M-d")}";
-                }
-                else
-                {
-                    return $"https://www.wunderground.com/history/daily/gb/{location}/EGKA/date/{date.ToString("yyyy-M-d")}";
-                }
+                return $"https://www.wunderground.com/history/daily/{location}/date/{date.ToString("yyyy-M-d")}";
             };
 
             var htmlDocument = await WebBrowserRequest.Navigate(getUrl, IsDocumentFullyLoaded, this.userInteraction, this.browser);

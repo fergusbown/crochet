@@ -2,8 +2,8 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="TemperatureClient.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="Location" Type="System.String" Scope="User">
-      <Value Profile="(Default)">brighton</Value>
+    <Setting Name="StationLocation" Type="System.String" Scope="User">
+      <Value Profile="(Default)">EGKA</Value>
     </Setting>
     <Setting Name="LastDate" Type="System.DateTime" Scope="User">
       <Value Profile="(Default)" />

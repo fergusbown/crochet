@@ -117,4 +117,16 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <metadata name="toolTipLocation.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>17, 17</value>
+  </metadata>
+  <data name="textBoxLocation.ToolTip" xml:space="preserve">
+    <value>To determine the location:
+
+1) Search Locations in Weather Underground to find your desired location
+2) Click on history
+3) Within the address, find the 4 character code after the string location
+
+Thats the location to enter here</value>
+  </data>
 </root>
