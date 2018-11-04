@@ -5,12 +5,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FF.Crochet.Lib
+namespace FF.Corner2Corner.Lib
 {
     public interface IPaletteItem
     {
         Color Color { get; }
 
-        string Text { get; set; }
+        string Text { get; }
     }
 }

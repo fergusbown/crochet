@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FF.Crochet.Lib
+namespace FF.Corner2Corner.Lib
 {
     public static class ImageHelper
     {
@@ -76,10 +76,13 @@ namespace FF.Crochet.Lib
         }
 
         public static Bitmap FromImageGrid(
-            ImageGrid grid, 
+            IImageGrid grid, 
             Color gridColor, 
             bool hightlightRows = false)
         {
+            if (grid == null)
+                return null;
+
             Bitmap bitmap = new Bitmap(
                 grid.Width * pixelSize, 
                 grid.Height * pixelSize);
@@ -92,7 +95,7 @@ namespace FF.Crochet.Lib
                 {
                     for (int y = 0; y < grid.Height; y++)
                     {
-                        Color color = grid[x, y];
+                        Color color = grid[x, y].Color;
 
                         Rectangle colorRect = new Rectangle(
                             x * pixelSize + gridSize,

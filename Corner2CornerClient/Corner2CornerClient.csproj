@@ -60,11 +60,9 @@
     <Compile Include="MainForm.Designer.cs">
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="PaletteItem.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="PaletteItem.Designer.cs">
-      <DependentUpon>PaletteItem.cs</DependentUpon>
+    <Compile Include="PaletteItemControl.cs" />
+    <Compile Include="PaletteItemControl.Designer.cs">
+      <DependentUpon>PaletteItemControl.cs</DependentUpon>
     </Compile>
     <Compile Include="PictureBoxAdapter.cs" />
     <Compile Include="Program.cs" />
@@ -75,8 +73,8 @@
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="PaletteItem.resx">
-      <DependentUpon>PaletteItem.cs</DependentUpon>
+    <EmbeddedResource Include="PaletteItemControl.resx">
+      <DependentUpon>PaletteItemControl.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -103,10 +101,20 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\FF.Crochet.Lib\FF.Crochet.Lib.csproj">
-      <Project>{03A93B1D-983F-49C2-9D86-5E97E529AE03}</Project>
-      <Name>FF.Crochet.Lib</Name>
+    <ProjectReference Include="..\FF.Common\FF.Common.csproj">
+      <Project>{E4D0502F-A85B-4892-89F1-4986E278565E}</Project>
+      <Name>FF.Common</Name>
     </ProjectReference>
+    <ProjectReference Include="..\FF.Crochet.Lib\FF.Corner2Corner.Lib.csproj">
+      <Project>{03A93B1D-983F-49C2-9D86-5E97E529AE03}</Project>
+      <Name>FF.Corner2Corner.Lib</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\AddTextFile_16x.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\AddImage_16x.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\GitVersionTask.3.6.5\build\dotnet\GitVersionTask.targets" Condition="Exists('..\packages\GitVersionTask.3.6.5\build\dotnet\GitVersionTask.targets')" />
@@ -117,16 +125,11 @@
     <Error Condition="!Exists('..\packages\GitVersionTask.3.6.5\build\dotnet\GitVersionTask.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\GitVersionTask.3.6.5\build\dotnet\GitVersionTask.targets'))" />
     <Error Condition="!Exists('..\packages\MSBuildTasks.1.5.0.235\build\MSBuildTasks.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MSBuildTasks.1.5.0.235\build\MSBuildTasks.targets'))" />
   </Target>
-  
-  <Target Name="PackageRelease" AfterTargets="CoreBuild" >
-	<ItemGroup>
-		<BinFiles Include="$(MSBuildProjectDirectory)\$(OutputPath)\**\*.*" />
-	</ItemGroup>
-	
-	<Zip Files="@(BinFiles)" 
-		WorkingDirectory="$(SolutionDir)\bin" 
-		ZipFileName="$(SolutionDir)\bin\$(MSBuildProjectName).$(Configuration).$(GitVersion_MajorMinorPatch).zip" />
+  <Target Name="PackageRelease" AfterTargets="CoreBuild">
+    <ItemGroup>
+      <BinFiles Include="$(MSBuildProjectDirectory)\$(OutputPath)\**\*.*" />
+    </ItemGroup>
+    <Zip Files="@(BinFiles)" WorkingDirectory="$(SolutionDir)\bin" ZipFileName="$(SolutionDir)\bin\$(MSBuildProjectName).$(Configuration).$(GitVersion_MajorMinorPatch).zip" />
   </Target>
-  
   <Import Project="..\packages\MSBuildTasks.1.5.0.235\build\MSBuildTasks.targets" Condition="Exists('..\packages\MSBuildTasks.1.5.0.235\build\MSBuildTasks.targets')" />
 </Project>

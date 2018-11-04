@@ -1,4 +1,5 @@
-﻿using FF.Crochet.Lib;
+﻿using FF.Common;
+using FF.Corner2Corner.Lib;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -7,230 +8,256 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Corner2CornerClient
 {
-    public partial class MainForm : Form
+    public partial class MainForm : Form, ICorner2CornerCommandsInput
     {
         private readonly PictureBoxAdapter pictureBoxAdapter;
-        private readonly OpenFileDialog openDialog = new OpenFileDialog() { Filter = "Image Files (*.bmp, *.jpg, *.png)|*.bmp;*.jpg;*.png" }; 
-        private readonly SaveFileDialog saveFileDialog = new SaveFileDialog() { DefaultExt = ".txt", Filter ="Text Files (*.txt)|*.txt" };
+        private readonly OpenFileDialog openDialog = new OpenFileDialog() { Filter = "Image Files (*.bmp, *.jpg, *.png)|*.bmp;*.jpg;*.png" };
+        private readonly SaveFileDialog saveTextFileDialog = new SaveFileDialog() { DefaultExt = ".txt", Filter ="Text Files (*.txt)|*.txt" };
         private readonly SaveFileDialog saveImageFileDialog = new SaveFileDialog() { DefaultExt = ".bmp", Filter = "Bitmaps (*.bmp)|*.bmp" };
-        private ImageGrid imageGrid;
+        private readonly ICorner2CornerProject project;
+        private readonly IUndoRedoManager undoRedoManager;
+        private IPaletteItem currentPaletteItem;
+        private Point? clickImagePoint;
 
-        private void SetHint()
-        {
-            string hint;
-            if (this.imageGrid == null)
-                hint = "Process to generate pattern";
-            else
-                hint = $"Pattern dimensions: {this.imageGrid.Width} x {this.imageGrid.Height}.  Select color and click on image to modify";
-
-            hintLabel.Text = hint;
-        }
+        public string InputWidth => this.gridWidthToolStripTextBox.Text;
 
         public MainForm()
         {
             InitializeComponent();
+
             this.pictureBoxAdapter = new PictureBoxAdapter(this.pictureBox);
             this.pictureBoxAdapter.MouseOverPixel += PictureBoxAdapter_MouseOverPixel;
-            this.pictureBoxAdapter.MouseClickPixel += PictureBoxAdapter_MouseClickPixel;
+
+            this.undoRedoManager = new UndoRedoManager();
+
+            this.project = Corner2CornerProjectFactory.Create(this, this.undoRedoManager);
+
+            this.undoToolStripMenuItem.Click += (s, e) => this.undoRedoManager.Undo();
+            this.redoToolStripMenuItem.Click += (s, e) => this.undoRedoManager.Redo();
+
+            this.openToolStripMenuItem.Click += (s, e) => this.undoRedoManager.Do(this.project.Commands.GetCommand(Corner2CornerCommand.Load));
+            this.openToolStripButton.Click += (s, e) => this.undoRedoManager.Do(this.project.Commands.GetCommand(Corner2CornerCommand.Load));
+
+            this.generateGridToolStripMenuItem.Click += (s, e) => this.undoRedoManager.Do(this.project.Commands.GetCommand(Corner2CornerCommand.GenerateImageGrid));
+
+            this.saveTextPatternToolStripButton.Click += (s, e) => this.undoRedoManager.Do(this.project.Commands.GetCommand(Corner2CornerCommand.SaveTextPattern));
+            this.saveTextPatternToolStripMenuItem.Click += (s, e) => this.undoRedoManager.Do(this.project.Commands.GetCommand(Corner2CornerCommand.SaveTextPattern));
+
+            this.saveImagePatternToolStripButton.Click += (s, e) => this.undoRedoManager.Do(this.project.Commands.GetCommand(Corner2CornerCommand.SaveImagePattern));
+            this.saveImagePatternToolStripMenuItem.Click += (s, e) => this.undoRedoManager.Do(this.project.Commands.GetCommand(Corner2CornerCommand.SaveImagePattern));
+
+            this.gridColorToolStripLabel.DoubleClick += (s, e) => this.undoRedoManager.Do(this.project.Commands.GetCommand(Corner2CornerCommand.SetGridBackground));
+            this.setGridBackgroundColorToolStripMenuItem.Click += (s, e) => this.project.Commands.GetCommand(Corner2CornerCommand.SetGridBackground);
+
+            this.pictureBoxAdapter.MouseClickPixel += (s, e) =>
+            {
+                this.clickImagePoint = e.Location;
+                this.undoRedoManager.Do(this.project.Commands.GetCommand(Corner2CornerCommand.ClickImage));
+            };
+
+            this.gridWidthToolStripTextBox.TextChanged += GridWidthToolStripTextBox_TextChanged;
+
+            ProjectChange(new ProjectChangeDetails(true, true, true));
+
+            Application.Idle += Application_Idle;
         }
 
-        private void PictureBoxAdapter_MouseClickPixel(object sender, MousePixelEventsArgs e)
+        private void GridWidthToolStripTextBox_TextChanged(object sender, EventArgs e)
         {
-            if (this.imageGrid == null)
+            this.undoRedoManager.Do(this.project.Commands.GetCommand(Corner2CornerCommand.SetWidth));
+        }
+
+        private void PopulateGeneral()
+        {
+            this.gridWidthToolStripTextBox.TextChanged -= GridWidthToolStripTextBox_TextChanged;
+            try
             {
-                var paletteItem = new PaletteItem(e.Color) { Height = 20 };
-                paletteItem.ColorClick += PaletteItem_ColorClick;
-                this.palettePanel.Controls.Add(paletteItem);
+                this.gridWidthToolStripTextBox.Text = this.project.Width.ToString();
+            }
+            finally
+            {
+                this.gridWidthToolStripTextBox.TextChanged += GridWidthToolStripTextBox_TextChanged;
+            }
+        }
+
+        private void PopulateImage()
+        {
+            if (this.project.ImageGrid != null)
+            {
+                pictureBox.Image = ImageHelper.FromImageGrid(this.project.ImageGrid, this.project.GridBackgroundColor);
             }
             else
             {
-                var selectedPaletteItem = this.Palette
-                    .Where(p => p.Color == currentColorPanel.BackColor)
-                    .FirstOrDefault();
-
-                if (selectedPaletteItem == null)
-                {
-                    this.ShowMessage("Please select a palette item to use by clicking on it");
-                    return;
-                }
-
-                Point gridPoint = ImageHelper.ToImageGridPoint(e.Location);
-                this.imageGrid[gridPoint.X, gridPoint.Y] = selectedPaletteItem.Color;
-                pictureBox.Image = ImageHelper.FromImageGrid(imageGrid, panelGridColor.BackColor);
+                pictureBox.Image = this.project.Image;
             }
         }
 
-        private void PaletteItem_ColorClick(object sender, IPaletteItem e)
+        private void PopulatePalette()
         {
-            if (this.imageGrid != null)
+            this.palettePanel.Controls.Clear();
+
+            List<PaletteItemControl> newControls = new List<PaletteItemControl>();
+
+            foreach (IPaletteItem item in this.project.Palette)
             {
-                this.currentColorPanel.BackColor = e.Color;
+                PaletteItemControl paletteItemControl = new PaletteItemControl(item);
+                paletteItemControl.PaletteItemClick += (s, e) => this.currentPaletteItem = e.PaletteItem;
+                paletteItemControl.PaletteItemClick += (s, e) => this.undoRedoManager.Do(this.project.Commands.GetCommand(Corner2CornerCommand.SetSelectedPaletteItem));
+
+                paletteItemControl.PaletteItemDoubleClick += (s, e) => this.currentPaletteItem = e.PaletteItem;
+                paletteItemControl.PaletteItemDoubleClick += (s, e) => this.undoRedoManager.Do(this.project.Commands.GetCommand(Corner2CornerCommand.SetPaletteItemText));
+
+                newControls.Add(paletteItemControl);
             }
+
+            this.palettePanel.Controls.AddRange(newControls.ToArray());
         }
+
+        private void PopulateSelectedPaletteItem()
+        {
+            this.activeColorToolStripLabel.BackColor = this.project.SelectedPaletteItem?.Color ?? SystemColors.Window;
+        }
+
+
+        private void Application_Idle(object sender, EventArgs e)
+        {
+            this.undoToolStripMenuItem.Enabled = this.undoRedoManager.CanUndo();
+            this.redoToolStripMenuItem.Enabled = this.undoRedoManager.CanRedo();
+            this.gridColorToolStripLabel.BackColor = this.project.GridBackgroundColor;
+        }
+
+        //private void Commands_SetHint(object sender, MessageEventArgs e)
+        //{
+        //    this.hintLabel.Text = e.Message;
+        //}
 
         private void PictureBoxAdapter_MouseOverPixel(object sender, MousePixelEventsArgs e)
         {
-            if (this.imageGrid == null)
+            if (this.project.ImageGrid == null)
             {
-                this.currentColorPanel.BackColor = e.Color;
+                this.activeColorToolStripLabel.BackColor = e.Color;
             }
         }
 
-        private void loadImageButton_Click(object sender, EventArgs e)
+        public void SetBusy(bool isBusy)
+        {
+            if (isBusy)
+            {
+                this.Cursor = Cursors.WaitCursor;
+            }
+            else
+            {
+                this.Cursor = Cursors.Default;
+            }
+        }
+
+        public void ProjectChange(ProjectChangeDetails details)
+        {
+            PopulateGeneral();
+
+            if (details.ImageChanged)
+            {
+                PopulateImage();
+            }
+
+            if (details.PaletteChanged)
+            {
+                PopulatePalette();
+            }
+
+            if (details.SelectedPaletteItemChanged)
+            {
+                PopulateSelectedPaletteItem();
+            }
+        }
+
+        public bool SelectProjectFile(out string inputFile)
         {
             if (openDialog.ShowDialog(this) == DialogResult.OK)
             {
-                try
-                {
-                    pictureBox.Load(openDialog.FileName);
-                    this.palettePanel.Controls.Clear();
-                    this.imageGrid = null;
-                    SetHint();
-                }
-                catch
-                {
-                    openDialog.FileName = null;
-                }
+                inputFile = openDialog.FileName;
+                return true;
             }
+
+            inputFile = null;
+            return false;
         }
 
-        private void ShowMessage(string text, MessageBoxIcon icon = MessageBoxIcon.Warning)
+        public bool GetClickImagePoint(out Point point)
         {
-            MessageBox.Show(this, text, this.Text, MessageBoxButtons.OK, icon);
+            if (this.clickImagePoint.HasValue)
+            {
+                point = this.clickImagePoint.Value;
+                return true;
+            }
+            else
+            {
+                point = Point.Empty;
+                return false;
+            }
         }
 
-        private IEnumerable<IPaletteItem> Palette
+        public bool GetCurrentPaletteItem(out IPaletteItem paletteItem)
         {
-            get
-            {
-                return this.palettePanel.Controls.Cast<PaletteItem>();
-            }
+            paletteItem = this.currentPaletteItem;
+            return paletteItem != null;
         }
 
-        private void processButton_Click(object sender, EventArgs e)
+        public bool GetPaletteItemText(IPaletteItem paletteItem, out string newText)
         {
-            if (String.IsNullOrWhiteSpace(this.openDialog.FileName))
-            {
-                ShowMessage("Please select an image to process");
-                return;
-            }
-
-            if (this.Palette.Count() < 2)
-            {
-                ShowMessage("Please select at least 2 colors for the pattern by clicking on the image");
-                return;
-            }
-
-            int width;
-            if (!int.TryParse(gridWidthTextBox.Text, out width))
-            {
-                ShowMessage("Please specify a valid width for the pattern");
-            }
-
-            if (width < 10)
-            {
-                ShowMessage("Width must be at least 10");
-            }
-
-            ImageGridder gridder = new ImageGridder(width);
-            using (Stream image = File.OpenRead(openDialog.FileName))
-            {
-                this.Cursor = Cursors.WaitCursor;
-                try
-                {
-                    this.imageGrid = gridder.Load(image, this.Palette.Select(p => p.Color));
-                    pictureBox.Image = ImageHelper.FromImageGrid(imageGrid, panelGridColor.BackColor);
-                    this.currentColorPanel.BackColor = SystemColors.Control;
-                    SetHint();
-                }
-                finally
-                {
-                    this.Cursor = Cursors.Default;
-                }
-            }
+            newText = ColorNameForm.Show(this, paletteItem);
+            return !string.IsNullOrWhiteSpace(newText);
         }
 
-        private void panelGridColor_Click(object sender, EventArgs e)
+        public bool GetColor(out Color color)
         {
             using (ColorDialog dialog = new ColorDialog())
             {
-                dialog.Color = panelGridColor.BackColor;
-
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
-                    panelGridColor.BackColor = dialog.Color;
+                    color = dialog.Color;
+                    return true;
                 }
             }
+
+            color = Color.Empty;
+            return false;
         }
 
-        private void buttonTextPattern_Click(object sender, EventArgs e)
+        public void ShowMessage(string message)
         {
-            if (this.imageGrid == null)
-            {
-                this.ShowMessage("Please load and process image first");
-                return;
-            }
-
-            foreach (IPaletteItem item in this.Palette)
-            {
-                if (String.IsNullOrEmpty(item.Text))
-                {
-                    if (!ColorNameForm.Show(item))
-                    {
-                        return;
-                    }
-                }
-            }
-
-            if (this.Palette.Select(p => p.Text).Distinct().Count() != this.Palette.Count())
-            {
-                this.ShowMessage("Please set a unique name for each selected color by double clicking it");
-                return;
-            }
-
-            if (saveFileDialog.ShowDialog() == DialogResult.OK)
-            {
-                this.Cursor = Cursors.WaitCursor;
-                try
-                {
-                    File.WriteAllText(saveFileDialog.FileName, this.imageGrid.GenerateTextPattern(this.Palette));
-                }
-                finally
-                {
-                    this.Cursor = Cursors.Default;
-                }
-            }
+            MessageBox.Show(this, message, this.Text, MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
 
-        private void buttonImagePattern_Click(object sender, EventArgs e)
+        public bool SelectTextPatternFile(out string outputFile)
         {
-            if (this.imageGrid == null)
+            if (saveTextFileDialog.ShowDialog(this) == DialogResult.OK)
             {
-                this.ShowMessage("Please load and process image first");
-                return;
+                outputFile = saveTextFileDialog.FileName;
+                return true;
             }
 
-            if (saveImageFileDialog.ShowDialog() == DialogResult.OK)
+            outputFile = null;
+            return false;
+        }
+
+        public bool SelectImagePatternFile(out string outputFile)
+        {
+            if (saveImageFileDialog.ShowDialog(this) == DialogResult.OK)
             {
-                this.Cursor = Cursors.WaitCursor;
-                try
-                {
-                    using (var pattern = ImageHelper.FromImageGrid(this.imageGrid, panelGridColor.BackColor, true))
-                    {
-                        pattern.Save(saveImageFileDialog.FileName);
-                    }
-                }
-                finally
-                {
-                    this.Cursor = Cursors.Default;
-                }
+                outputFile = saveImageFileDialog.FileName;
+                return true;
             }
+
+            outputFile = null;
+            return false;
         }
     }
 }

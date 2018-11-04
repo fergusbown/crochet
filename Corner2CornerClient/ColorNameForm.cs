@@ -1,4 +1,4 @@
-﻿using FF.Crochet.Lib;
+﻿using FF.Corner2Corner.Lib;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -26,21 +26,20 @@ namespace Corner2CornerClient
             }
         }
 
-        public static bool Show(IPaletteItem paletteItem)
+        public static string Show(IWin32Window owner, IPaletteItem paletteItem)
         {
             using (var form = new ColorNameForm())
             {
                 form.BackColor = paletteItem.Color;
                 form.textBox1.Text = paletteItem.Text;
 
-                if (form.ShowDialog(paletteItem as IWin32Window) == DialogResult.OK)
+                if (form.ShowDialog(owner) == DialogResult.OK)
                 {
-                    paletteItem.Text = form.textBox1.Text.Trim();
-                    return true;
+                    return form.textBox1.Text.Trim();
                 }
             }
 
-            return false;
+            return null;
         }
     }
 }

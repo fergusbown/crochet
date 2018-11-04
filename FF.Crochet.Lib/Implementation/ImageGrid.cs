@@ -5,32 +5,32 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FF.Crochet.Lib
+namespace FF.Corner2Corner.Lib
 {
-    public class RowCoordinates
+    internal class ImageGrid : IImageGrid
     {
-        public int RowIndex { get; }
-        public Point Start { get; }
-
-        public Point End { get; }
-
-        public RowCoordinates(int rowIndex, Point start, Point end)
+        private class RowCoordinates
         {
-            this.RowIndex = rowIndex;
-            this.Start = start;
-            this.End = end;
-        }
-    }
+            public int RowIndex { get; }
+            public Point Start { get; }
 
-    public class ImageGrid
-    {
-        private readonly Color[,] grid;
+            public Point End { get; }
+
+            public RowCoordinates(int rowIndex, Point start, Point end)
+            {
+                this.RowIndex = rowIndex;
+                this.Start = start;
+                this.End = end;
+            }
+        }
+
+        private readonly IPaletteItem[,] grid;
         public ImageGrid(int width, int height)
         {
-            this.grid = new Color[width, height];
+            this.grid = new PaletteItem[width, height];
         }
 
-        public Color this[int x, int y]
+        public IPaletteItem this[int x, int y]
         {
             get
             {
@@ -45,7 +45,7 @@ namespace FF.Crochet.Lib
         public int Width => this.grid.GetLength(0);
         public int Height => this.grid.GetLength(1);
 
-        public int RowCount
+        private int RowCount
         {
             get
             {
@@ -53,7 +53,9 @@ namespace FF.Crochet.Lib
             }
         }
 
-        public IEnumerable<RowCoordinates> GetRowCoordinates()
+        IPaletteItem IImageGrid.this[int x, int y] => this[x, y];
+
+        private IEnumerable<RowCoordinates> GetRowCoordinates()
         {
             int startX = 0;
             int startY = 0;
@@ -81,13 +83,13 @@ namespace FF.Crochet.Lib
             }
         }
 
-        private List<List<Color>> GenerateRows()
+        private List<List<IPaletteItem>> GenerateRows()
         {
-            List<List<Color>> result = new List<List<Color>>(this.RowCount);
+            var result = new List<List<IPaletteItem>>(this.RowCount);
 
             foreach (var rowCoordinates in GetRowCoordinates())
             {
-                List<Color> row = new List<Color>();
+                List<IPaletteItem> row = new List<IPaletteItem>();
 
                 int x = rowCoordinates.Start.X;
                 int y = rowCoordinates.Start.Y;
@@ -107,27 +109,25 @@ namespace FF.Crochet.Lib
             return result;
         }
 
-        public string GenerateTextPattern(IEnumerable<IPaletteItem> palette)
+        public string GenerateTextPattern()
         {
             StringBuilder sb = new StringBuilder();
-
-            var colorDictionary = palette.ToDictionary(p => p.Color, p => p.Text);
 
             sb.AppendLine("Pattern starts top left");
             sb.AppendLine("Odd rows (1, 3 etc) are down rows");
             sb.AppendLine();
 
             int rowNumber = 1;
-            foreach (List<Color> row in GenerateRows())
+            foreach (List<IPaletteItem> row in GenerateRows())
             {
-                Color lastColor = Color.Empty;
+                IPaletteItem lastColor = null;
                 int lastColorCount = 0;
 
                 Action<bool> appendColor = (includeComma) =>
                 {
                     if (lastColorCount > 0)
                     {
-                        string colorString = colorDictionary[lastColor];
+                        string colorString = lastColor.Text;
                         sb.Append(lastColorCount);
                         sb.Append(colorString);
                         if (includeComma)

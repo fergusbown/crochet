@@ -1,7 +1,7 @@
 ﻿namespace Corner2CornerClient
 
 {
-    partial class PaletteItem
+    partial class PaletteItemControl
     {
         /// <summary> 
         /// Required designer variable.
@@ -36,18 +36,19 @@
             // 
             this.label1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.label1.Location = new System.Drawing.Point(0, 0);
+            this.label1.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(150, 150);
+            this.label1.Size = new System.Drawing.Size(112, 122);
             this.label1.TabIndex = 0;
-            this.label1.DoubleClick += new System.EventHandler(this.label1_DoubleClick);
-            this.label1.MouseClick += new System.Windows.Forms.MouseEventHandler(this.label1_MouseClick);
             // 
-            // PaletteItem
+            // PaletteItemControl
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.label1);
-            this.Name = "PaletteItem";
+            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.Name = "PaletteItemControl";
+            this.Size = new System.Drawing.Size(112, 122);
             this.ResumeLayout(false);
 
         }
