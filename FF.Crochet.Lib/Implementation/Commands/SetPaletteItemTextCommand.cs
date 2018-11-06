@@ -42,6 +42,7 @@ namespace FF.Corner2Corner.Lib
             {
                 if (this.Project.Palette.Find(context.Color, out currentState))
                 {
+                    currentState = new PaletteItem(currentState);
                     newState = new PaletteItem(color: context.Color, text: newText);
                     return true;
                 }
