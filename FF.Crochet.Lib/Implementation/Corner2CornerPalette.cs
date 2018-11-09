@@ -41,11 +41,11 @@ namespace FF.Corner2Corner.Lib
             return false;
         }
 
-        public bool Add(Color color)
+        public bool Add(Color color, string text = null)
         {
             if (!this.palette.ContainsKey(color))
             {
-                this.palette.Add(color, new PaletteItem(color:color));
+                this.palette.Add(color, new PaletteItem(color:color, text:text));
                 return true;
             }
 
@@ -55,6 +55,11 @@ namespace FF.Corner2Corner.Lib
         public bool Remove(Color color)
         {
             return this.palette.Remove(color);
+        }
+
+        public void Clear()
+        {
+            this.palette.Clear();
         }
 
         public bool Find(Color color, out IPaletteItem paletteItem)

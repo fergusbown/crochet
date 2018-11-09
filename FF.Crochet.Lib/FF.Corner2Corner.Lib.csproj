@@ -52,6 +52,10 @@
     <Compile Include="ImageHelper.cs" />
     <Compile Include="Implementation\Commands\BaseCorner2CornerCommand.cs" />
     <Compile Include="Implementation\Commands\AddPaletteItemCommand.cs" />
+    <Compile Include="Implementation\Commands\CloseCommand.cs" />
+    <Compile Include="Implementation\Commands\SaveAsCommand.cs" />
+    <Compile Include="Implementation\Commands\SaveIfRequiredCommand.cs" />
+    <Compile Include="Implementation\Commands\SaveCommand.cs" />
     <Compile Include="Implementation\Commands\SaveImagePatternCommand.cs" />
     <Compile Include="Implementation\Commands\SetImageGridCellCommand.cs" />
     <Compile Include="Implementation\Commands\ClickImageCommand.cs" />
@@ -65,6 +69,11 @@
     <Compile Include="Implementation\Corner2CornerCommand.cs" />
     <Compile Include="Implementation\Corner2CornerCommandAttribute.cs" />
     <Compile Include="Implementation\Corner2CornerPalette.cs" />
+    <Compile Include="Implementation\Persistence\HeaderPersistence.cs" />
+    <Compile Include="Implementation\Persistence\ImageGridPersistence.cs" />
+    <Compile Include="Implementation\Persistence\PaletteItemPersistence.cs" />
+    <Compile Include="Implementation\Persistence\ImagePersistence.cs" />
+    <Compile Include="Implementation\Persistence\Corner2CornerProjectPersistence.cs" />
     <Compile Include="Implementation\Corner2CornerProject.cs" />
     <Compile Include="Implementation\Corner2CornerProjectFactory.cs" />
     <Compile Include="Implementation\ICorner2CornerCommandsInput.cs" />

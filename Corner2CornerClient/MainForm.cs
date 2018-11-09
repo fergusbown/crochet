@@ -18,9 +18,10 @@ namespace Corner2CornerClient
     public partial class MainForm : Form, ICorner2CornerCommandsInput
     {
         private readonly PictureBoxAdapter pictureBoxAdapter;
-        private readonly OpenFileDialog openDialog = new OpenFileDialog() { Filter = "Image Files (*.bmp, *.jpg, *.png)|*.bmp;*.jpg;*.png" };
+        private readonly OpenFileDialog openDialog = new OpenFileDialog() { Filter = "Image or Corner 2 Corner project Files (*.bmp, *.jpg, *.png, *.c2c)|*.bmp;*.jpg;*.png;*.c2c" };
         private readonly SaveFileDialog saveTextFileDialog = new SaveFileDialog() { DefaultExt = ".txt", Filter ="Text Files (*.txt)|*.txt" };
         private readonly SaveFileDialog saveImageFileDialog = new SaveFileDialog() { DefaultExt = ".bmp", Filter = "Bitmaps (*.bmp)|*.bmp" };
+        private readonly SaveFileDialog saveProjectFileDialog = new SaveFileDialog() { DefaultExt = ".c2c", Filter = "Corner 2 Corner projects (*.c2c)|*.c2c" };
         private readonly ICorner2CornerProject project;
         private readonly IUndoRedoManager undoRedoManager;
         private IPaletteItem currentPaletteItem;
@@ -45,6 +46,13 @@ namespace Corner2CornerClient
             this.openToolStripMenuItem.Click += (s, e) => this.undoRedoManager.Do(this.project.Commands.GetCommand(Corner2CornerCommand.Load));
             this.openToolStripButton.Click += (s, e) => this.undoRedoManager.Do(this.project.Commands.GetCommand(Corner2CornerCommand.Load));
 
+            this.saveToolStripMenuItem.Click += (s, e) => this.undoRedoManager.Do(this.project.Commands.GetCommand(Corner2CornerCommand.Save));
+            this.saveToolStripButton.Click += (s, e) => this.undoRedoManager.Do(this.project.Commands.GetCommand(Corner2CornerCommand.Save));
+
+            this.saveAsToolStripMenuItem.Click += (s, e) => this.undoRedoManager.Do(this.project.Commands.GetCommand(Corner2CornerCommand.SaveAs));
+
+            this.closeProjectToolStripMenuItem.Click += (s, e) => this.undoRedoManager.Do(this.project.Commands.GetCommand(Corner2CornerCommand.Close));
+
             this.generateGridToolStripMenuItem.Click += (s, e) => this.undoRedoManager.Do(this.project.Commands.GetCommand(Corner2CornerCommand.GenerateImageGrid));
 
             this.saveTextPatternToolStripButton.Click += (s, e) => this.undoRedoManager.Do(this.project.Commands.GetCommand(Corner2CornerCommand.SaveTextPattern));
@@ -54,13 +62,20 @@ namespace Corner2CornerClient
             this.saveImagePatternToolStripMenuItem.Click += (s, e) => this.undoRedoManager.Do(this.project.Commands.GetCommand(Corner2CornerCommand.SaveImagePattern));
 
             this.gridColorToolStripLabel.DoubleClick += (s, e) => this.undoRedoManager.Do(this.project.Commands.GetCommand(Corner2CornerCommand.SetGridBackground));
-            this.setGridBackgroundColorToolStripMenuItem.Click += (s, e) => this.project.Commands.GetCommand(Corner2CornerCommand.SetGridBackground);
+            this.setGridBackgroundColorToolStripMenuItem.Click += (s, e) => this.undoRedoManager.Do(this.project.Commands.GetCommand(Corner2CornerCommand.SetGridBackground));
 
             this.pictureBoxAdapter.MouseClickPixel += (s, e) =>
             {
                 this.clickImagePoint = e.Location;
                 this.undoRedoManager.Do(this.project.Commands.GetCommand(Corner2CornerCommand.ClickImage));
             };
+
+            this.FormClosing += (s, e) =>
+            {
+                e.Cancel = !this.undoRedoManager.Do(this.project.Commands.GetCommand(Corner2CornerCommand.SaveIfRequired));
+            };
+
+            this.exitToolStripMenuItem.Click += (s, e) => this.Close();
 
             this.gridWidthToolStripTextBox.TextChanged += GridWidthToolStripTextBox_TextChanged;
 
@@ -108,6 +123,7 @@ namespace Corner2CornerClient
             foreach (IPaletteItem item in this.project.Palette)
             {
                 PaletteItemControl paletteItemControl = new PaletteItemControl(item);
+                paletteItemControl.Width = this.palettePanel.ClientRectangle.Width - 4;
                 paletteItemControl.PaletteItemClick += (s, e) => this.currentPaletteItem = e.PaletteItem;
                 paletteItemControl.PaletteItemClick += (s, e) => this.undoRedoManager.Do(this.project.Commands.GetCommand(Corner2CornerCommand.SetSelectedPaletteItem));
 
@@ -125,18 +141,33 @@ namespace Corner2CornerClient
             this.activeColorToolStripLabel.BackColor = this.project.SelectedPaletteItem?.Color ?? SystemColors.Window;
         }
 
+        private const int maxCaptionLength = 80;
+
+        private string GetCaption()
+        {
+            string description = this.project.FileName ?? "(New Project)";
+
+            if (description.Length > maxCaptionLength)
+            {
+                description = "..." + description.Substring(description.Length - maxCaptionLength);
+            }
+
+            if (this.project.ChangeTracking.IsDirty || this.project.ChangeTracking.IsNew)
+                description = description + "*";
+
+            description = description + " - Cornifier";
+
+            return description;
+        }
 
         private void Application_Idle(object sender, EventArgs e)
         {
             this.undoToolStripMenuItem.Enabled = this.undoRedoManager.CanUndo();
             this.redoToolStripMenuItem.Enabled = this.undoRedoManager.CanRedo();
             this.gridColorToolStripLabel.BackColor = this.project.GridBackgroundColor;
+            this.toolStripStatusLabel1.Text = this.project.ImageGrid == null ? "" : $"Current grid dimensions: {this.project.ImageGrid.Width} x {this.project.ImageGrid.Height}";
+            this.Text = GetCaption();
         }
-
-        //private void Commands_SetHint(object sender, MessageEventArgs e)
-        //{
-        //    this.hintLabel.Text = e.Message;
-        //}
 
         private void PictureBoxAdapter_MouseOverPixel(object sender, MousePixelEventsArgs e)
         {
@@ -178,16 +209,9 @@ namespace Corner2CornerClient
             }
         }
 
-        public bool SelectProjectFile(out string inputFile)
+        public bool SelectLoadProjectFile(out string inputFile)
         {
-            if (openDialog.ShowDialog(this) == DialogResult.OK)
-            {
-                inputFile = openDialog.FileName;
-                return true;
-            }
-
-            inputFile = null;
-            return false;
+            return ShowFileDialog(openDialog, out inputFile);
         }
 
         public bool GetClickImagePoint(out Point point)
@@ -233,31 +257,53 @@ namespace Corner2CornerClient
 
         public void ShowMessage(string message)
         {
-            MessageBox.Show(this, message, this.Text, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            MessageBox.Show(this, message, "Cornifier", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
+
+        public bool Confirm(string message, out bool cancelled)
+        {
+            DialogResult result = MessageBox.Show(this, message, "Cornifier", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Warning);
+
+            switch (result)
+            {
+                case DialogResult.Yes:
+                    cancelled = false;
+                    return true;
+                case DialogResult.No:
+                    cancelled = false;
+                    return false;
+                default:
+                    cancelled = true;
+                    return false;
+            }
+        }
+
+
+        private bool ShowFileDialog(FileDialog dialog, out string file)
+        {
+            if (dialog.ShowDialog(this) == DialogResult.OK)
+            {
+                file = dialog.FileName;
+                return true;
+            }
+
+            file = null;
+            return false;
         }
 
         public bool SelectTextPatternFile(out string outputFile)
         {
-            if (saveTextFileDialog.ShowDialog(this) == DialogResult.OK)
-            {
-                outputFile = saveTextFileDialog.FileName;
-                return true;
-            }
-
-            outputFile = null;
-            return false;
+            return ShowFileDialog(saveTextFileDialog, out outputFile);
         }
 
         public bool SelectImagePatternFile(out string outputFile)
         {
-            if (saveImageFileDialog.ShowDialog(this) == DialogResult.OK)
-            {
-                outputFile = saveImageFileDialog.FileName;
-                return true;
-            }
+            return ShowFileDialog(saveImageFileDialog, out outputFile);
+        }
 
-            outputFile = null;
-            return false;
+        public bool SelectSaveProjectFile(out string outputFile)
+        {
+            return ShowFileDialog(saveProjectFileDialog, out outputFile);
         }
     }
 }

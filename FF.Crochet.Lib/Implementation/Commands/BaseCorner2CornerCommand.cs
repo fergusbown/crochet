@@ -13,6 +13,7 @@ namespace FF.Corner2Corner.Lib
 
         private TState originalState;
         private TState newState;
+        private bool trackChange;
 
         protected Corner2CornerProject Project { get; }
         protected ICorner2CornerCommandsInput CommandsInput { get; }
@@ -25,25 +26,42 @@ namespace FF.Corner2Corner.Lib
             Corner2CornerProject project,
             ICorner2CornerCommandsInput commandsInput,
             ProjectChangeDetails projectChangeDetails,
-            bool supportsUndo = true, 
-            bool clearsUndoStack = false)
+            bool supportsUndo = true,
+            bool clearsUndoStack = false,
+            bool trackChange = true)
         {
             this.Project = project ?? throw new ArgumentNullException(nameof(project));
             this.projectChangeDetails = projectChangeDetails;
             this.CommandsInput = commandsInput;
             this.SupportsUndo = supportsUndo;
             this.ClearsUndoStack = clearsUndoStack;
+            this.trackChange = trackChange;
         }
 
         protected abstract bool CanDo(out TState currentState, out TState newState);
 
         protected abstract void DoImplementation(TState from, TState to);
 
+        private void DoAndTrack(ChangeTrackingOperation operation, TState from, TState to)
+        {
+            DoImplementation(from, to);
+
+            if (this.trackChange)
+            {
+                this.Project.ChangeTracking.Track(operation);
+            }
+
+            if (this.projectChangeDetails != null)
+            {
+                this.CommandsInput.ProjectChange(this.projectChangeDetails);
+            }
+        }
+
         public bool Do()
         {
             if (CanDo(out originalState, out newState))
             {
-                this.Redo();
+                DoAndTrack(ChangeTrackingOperation.Do, originalState, newState);
                 return true;
             }
 
@@ -52,22 +70,12 @@ namespace FF.Corner2Corner.Lib
 
         public void Undo()
         {
-            DoImplementation(newState, originalState);
-
-            if (this.projectChangeDetails != null)
-            {
-                this.CommandsInput.ProjectChange(this.projectChangeDetails);
-            }
+            DoAndTrack(ChangeTrackingOperation.Undo, newState, originalState);
         }
 
         public void Redo()
         {
-            this.DoImplementation(originalState, newState);
-
-            if (this.projectChangeDetails != null)
-            {
-                this.CommandsInput.ProjectChange(this.projectChangeDetails);
-            }
+            DoAndTrack(ChangeTrackingOperation.Redo, originalState, newState);
         }
     }
 }

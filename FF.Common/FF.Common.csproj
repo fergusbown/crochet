@@ -48,6 +48,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CommandDiscovery.cs" />
+    <Compile Include="ChangeTracking.cs" />
+    <Compile Include="IChangeTracking.cs" />
     <Compile Include="ICommandFactory.cs" />
     <Compile Include="ICommand.cs" />
     <Compile Include="IShowMessage.cs" />

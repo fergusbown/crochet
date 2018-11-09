@@ -14,14 +14,18 @@ namespace FF.Corner2Corner.Lib
 
         int Width { get; }
 
-        IPaletteItem SelectedPaletteItem { get; }
-
         IEnumerable<IPaletteItem> Palette { get; }
+
+        IPaletteItem SelectedPaletteItem { get; }
 
         IImageGrid ImageGrid { get; }
 
         Color GridBackgroundColor { get; }
 
         ICommandFactory<Corner2CornerCommand> Commands { get; }
+
+        string FileName { get; }
+
+        IChangeTracking ChangeTracking { get; }
     }
 }

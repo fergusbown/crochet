@@ -2,75 +2,63 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace FF.Corner2Corner.Lib
 {
-    internal class LoadCommandState
-    {
-        private Image image;
-        private Corner2CornerPalette palette;
-        private ImageGrid grid;
-        private IPaletteItem selected;
-
-        public LoadCommandState(Corner2CornerProject project)
-        {
-            this.image = project.Image;
-            this.palette = project.Palette;
-            this.grid = project.ImageGrid;
-            this.selected = project.SelectedPaletteItem;
-        }
-
-        public LoadCommandState(Image image)
-        {
-            this.image = image;
-            this.palette = new Corner2CornerPalette();
-        }
-
-        public void ApplyTo(Corner2CornerProject project)
-        {
-            project.Image = image;
-            project.Palette = palette;
-            project.ImageGrid = grid;
-            project.SelectedPaletteItem = selected;
-        }
-    }
-
     [Corner2CornerCommand(Corner2CornerCommand.Load)]
-    internal class LoadCommand : BaseCorner2CornerCommand<LoadCommandState>, ICommand
+    internal class LoadCommand : BaseCorner2CornerCommand<string>, ICommand
     {
-        public LoadCommand(Corner2CornerProject project, ICorner2CornerCommandsInput commandsInput)
-            : base(project, commandsInput, new ProjectChangeDetails(imageChanged:true, paletteChanged:true, selectedPaletteItemChanged:true))
+        private IUndoRedoManager undoRedoManager;
+        public LoadCommand(Corner2CornerProject project, ICorner2CornerCommandsInput commandsInput, IUndoRedoManager undoRedoManager)
+            : base(
+                  project, 
+                  commandsInput, 
+                  new ProjectChangeDetails(imageChanged:true, paletteChanged:true, selectedPaletteItemChanged:true),
+                  supportsUndo:false,
+                  clearsUndoStack:true,
+                  trackChange: false)
         {
+            this.undoRedoManager = undoRedoManager;
         }
 
-        protected override bool CanDo(out LoadCommandState currentState, out LoadCommandState newState)
+        protected override bool CanDo(out string currentState, out string newState)
         {
-            currentState = new LoadCommandState(this.Project);
+            currentState = null;
+            newState = null;
 
-            if (this.CommandsInput.SelectProjectFile(out string fileName))
+            SaveIfRequiredCommand saveCommand = new SaveIfRequiredCommand(this.Project, this.CommandsInput, this.undoRedoManager);
+
+            return this.undoRedoManager.Do(saveCommand) && this.CommandsInput.SelectLoadProjectFile(out newState);
+        }
+
+        protected override void DoImplementation(string from, string to)
+        {
+            try
             {
                 this.CommandsInput.SetBusy(true);
                 try
                 {
-                    newState = new LoadCommandState(Image.FromFile(fileName));
-                    return true;
+                    if (!Corner2CornerProjectPersistence.Load(to, this.Project))
+                    {
+                        this.Project.Clear();
+
+                        var bytes = File.ReadAllBytes(to);
+                        this.Project.Image = Image.FromStream(new MemoryStream(bytes));
+                    }
                 }
                 finally
                 {
                     this.CommandsInput.SetBusy(false);
                 }
             }
-
-            newState = null;
-            return false;
-        }
-
-        protected override void DoImplementation(LoadCommandState from, LoadCommandState to)
-        {
-            to.ApplyTo(this.Project);
+            catch
+            {
+                this.CommandsInput.ShowMessage($"Could not load file {to}");
+            }
         }
     }
 }

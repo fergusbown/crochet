@@ -9,6 +9,10 @@ namespace FF.Corner2Corner.Lib
     public enum Corner2CornerCommand
     {
         Load,
+        Save,
+        SaveAs,
+        SaveIfRequired,
+        Close,
         GenerateImageGrid,
         SetWidth,
         ClickImage,

@@ -9,5 +9,7 @@ namespace FF.Common
     public interface IShowMessage
     {
         void ShowMessage(string message);
+
+        bool Confirm(string message, out bool cancelled);
     }
 }

@@ -16,7 +16,9 @@ namespace FF.Corner2Corner.Lib
 
         void ProjectChange(ProjectChangeDetails details);
 
-        bool SelectProjectFile(out string inputFile);
+        bool SelectLoadProjectFile(out string inputFile);
+
+        bool SelectSaveProjectFile(out string outputFile);
 
         bool GetClickImagePoint(out Point point);
 

@@ -48,7 +48,7 @@
             this.Controls.Add(this.label1);
             this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.Name = "PaletteItemControl";
-            this.Size = new System.Drawing.Size(112, 122);
+            this.Size = new System.Drawing.Size(100, 25);
             this.ResumeLayout(false);
 
         }
