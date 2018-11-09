@@ -12,7 +12,7 @@ namespace FF.Corner2Corner.Lib
     internal class AddPaletteItemCommand : BaseCorner2CornerCommand<Color>, ICommand
     {
         public AddPaletteItemCommand(Corner2CornerProject project, ICorner2CornerCommandsInput commandsInput)
-            : base(project, commandsInput, new ProjectChangeDetails(paletteChanged:true))
+            : base(project, commandsInput, Corner2CornerCommandOptions.New().ChangesPalette())
         {
         }
 

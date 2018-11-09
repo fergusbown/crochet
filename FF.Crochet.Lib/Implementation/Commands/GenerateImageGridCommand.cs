@@ -11,7 +11,7 @@ namespace FF.Corner2Corner.Lib
     internal class GenerateImageGridCommand : BaseCorner2CornerCommand<ImageGrid>, ICommand
     {
         public GenerateImageGridCommand(Corner2CornerProject project, ICorner2CornerCommandsInput commandsInput)
-            : base(project, commandsInput, new ProjectChangeDetails(imageChanged:true, selectedPaletteItemChanged:true))
+            : base(project, commandsInput, Corner2CornerCommandOptions.New().ChangesImage())
         {
         }
 

@@ -12,7 +12,7 @@ namespace FF.Corner2Corner.Lib
     internal class SetGridBackgroundCommand : BaseCorner2CornerCommand<Color>, ICommand
     {
         public SetGridBackgroundCommand(Corner2CornerProject project, ICorner2CornerCommandsInput commandsInput)
-            : base(project, commandsInput, new ProjectChangeDetails(imageChanged:true))
+            : base(project, commandsInput, Corner2CornerCommandOptions.New().ChangesImage())
         {
         }
 

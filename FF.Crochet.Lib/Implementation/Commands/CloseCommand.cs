@@ -16,10 +16,7 @@ namespace FF.Corner2Corner.Lib
             : base(
                   project, 
                   commandsInput, 
-                  new ProjectChangeDetails(imageChanged:true, paletteChanged:true, selectedPaletteItemChanged:true),
-                  supportsUndo:false,
-                  clearsUndoStack:true,
-                  trackChange: false)
+                  Corner2CornerCommandOptions.New().ChangesEverything().ResetsOperations())
         {
             this.undoRedoManager = undoRedoManager;
         }

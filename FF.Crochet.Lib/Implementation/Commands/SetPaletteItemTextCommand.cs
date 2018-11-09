@@ -14,7 +14,7 @@ namespace FF.Corner2Corner.Lib
         private IPaletteItem context;
 
         public SetPaletteItemTextCommand(Corner2CornerProject project, ICorner2CornerCommandsInput commandsInput)
-            : base(project, commandsInput, new ProjectChangeDetails(paletteChanged:true))
+            : base(project, commandsInput, Corner2CornerCommandOptions.New().ChangesPalette())
         {
         }
 

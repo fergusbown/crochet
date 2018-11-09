@@ -8,11 +8,11 @@ namespace FF.Corner2Corner.Lib
 {
     public class ProjectChangeDetails
     {
-        public bool ImageChanged { get; }
+        public bool ImageChanged { get; set; }
 
-        public bool PaletteChanged { get; }
+        public bool PaletteChanged { get; set; }
 
-        public bool SelectedPaletteItemChanged { get; }
+        public bool SelectedPaletteItemChanged { get; set; }
 
         public ProjectChangeDetails(
             bool imageChanged = false,

@@ -14,7 +14,7 @@ namespace FF.Corner2Corner.Lib
         private Point clickedPoint;
 
         public SetImageGridCellCommand(Corner2CornerProject project, ICorner2CornerCommandsInput commandsInput)
-            : base(project, commandsInput, new ProjectChangeDetails(imageChanged:true))
+            : base(project, commandsInput, Corner2CornerCommandOptions.New().ChangesImage())
         {
         }
 

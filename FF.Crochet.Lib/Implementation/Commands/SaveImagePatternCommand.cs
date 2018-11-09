@@ -12,7 +12,7 @@ namespace FF.Corner2Corner.Lib
     internal class SaveImagePatternCommand : BaseCorner2CornerCommand<string>, ICommand
     {
         public SaveImagePatternCommand(Corner2CornerProject project, ICorner2CornerCommandsInput commandsInput)
-            : base(project, commandsInput, new ProjectChangeDetails(), supportsUndo: false)
+            : base(project, commandsInput, Corner2CornerCommandOptions.New().WithoutUndo())
         {
         }
 

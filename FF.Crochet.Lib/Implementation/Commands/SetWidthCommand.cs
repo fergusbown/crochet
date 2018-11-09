@@ -11,7 +11,7 @@ namespace FF.Corner2Corner.Lib
     internal class SetWidthCommand : BaseCorner2CornerCommand<int>, ICommand
     {
         public SetWidthCommand(Corner2CornerProject project, ICorner2CornerCommandsInput commandsInput)
-            : base(project, commandsInput, new ProjectChangeDetails())
+            : base(project, commandsInput, Corner2CornerCommandOptions.New())
         {
         }
 

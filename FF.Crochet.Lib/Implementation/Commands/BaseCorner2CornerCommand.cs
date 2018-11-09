@@ -9,33 +9,26 @@ namespace FF.Corner2Corner.Lib
 {
     internal abstract class BaseCorner2CornerCommand<TState> : ICommand
     {
-        private ProjectChangeDetails projectChangeDetails;
+        private Corner2CornerCommandOptions options;
 
         private TState originalState;
         private TState newState;
-        private bool trackChange;
 
         protected Corner2CornerProject Project { get; }
         protected ICorner2CornerCommandsInput CommandsInput { get; }
 
-        public bool SupportsUndo { get; }
+        public bool SupportsUndo => this.options.SupportsUndo;
 
-        public bool ClearsUndoStack { get; }
+        public bool ClearsUndoStack => this.options.ClearsUndoStack;
 
         protected BaseCorner2CornerCommand(
             Corner2CornerProject project,
             ICorner2CornerCommandsInput commandsInput,
-            ProjectChangeDetails projectChangeDetails,
-            bool supportsUndo = true,
-            bool clearsUndoStack = false,
-            bool trackChange = true)
+            Corner2CornerCommandOptions options)
         {
             this.Project = project ?? throw new ArgumentNullException(nameof(project));
-            this.projectChangeDetails = projectChangeDetails;
+            this.options = options ?? throw new ArgumentNullException(nameof(options));
             this.CommandsInput = commandsInput;
-            this.SupportsUndo = supportsUndo;
-            this.ClearsUndoStack = clearsUndoStack;
-            this.trackChange = trackChange;
         }
 
         protected abstract bool CanDo(out TState currentState, out TState newState);
@@ -46,15 +39,12 @@ namespace FF.Corner2Corner.Lib
         {
             DoImplementation(from, to);
 
-            if (this.trackChange)
+            if (this.options.TracksChange)
             {
                 this.Project.ChangeTracking.Track(operation);
             }
 
-            if (this.projectChangeDetails != null)
-            {
-                this.CommandsInput.ProjectChange(this.projectChangeDetails);
-            }
+            this.CommandsInput.ProjectChange(this.options.ProjectChangeDetails);
         }
 
         public bool Do()

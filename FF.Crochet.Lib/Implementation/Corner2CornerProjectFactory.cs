@@ -43,6 +43,7 @@ namespace FF.Corner2Corner.Lib
         {
             Corner2CornerProject result = new Corner2CornerProject();
             result.Commands = new CommandFactory(commandsInput, result, undoRedoManager);
+            result.ChangeTracking.Track(ChangeTrackingOperation.SetNew);
             return result;
         }
 

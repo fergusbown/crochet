@@ -14,7 +14,7 @@ namespace FF.Corner2Corner.Lib
         private readonly IUndoRedoManager undoRedoManager;
 
         public SaveTextPatternCommand(Corner2CornerProject project, ICorner2CornerCommandsInput commandsInput, IUndoRedoManager undoRedoManager)
-            : base(project, commandsInput, new ProjectChangeDetails(), supportsUndo: false)
+            : base(project, commandsInput, Corner2CornerCommandOptions.New().WithoutUndo())
         {
             this.undoRedoManager = undoRedoManager;
         }

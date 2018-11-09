@@ -14,11 +14,8 @@ namespace FF.Corner2Corner.Lib
         public SaveAsCommand(Corner2CornerProject project, ICorner2CornerCommandsInput commandsInput)
             : base(
                   project, 
-                  commandsInput, 
-                  new ProjectChangeDetails(),
-                  supportsUndo:false,
-                  clearsUndoStack:false,
-                  trackChange:false)
+                  commandsInput,
+                  Corner2CornerCommandOptions.New().WithoutUndo())
         {
         }
 

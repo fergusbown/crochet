@@ -54,6 +54,7 @@ namespace Corner2CornerClient
             this.closeProjectToolStripMenuItem.Click += (s, e) => this.undoRedoManager.Do(this.project.Commands.GetCommand(Corner2CornerCommand.Close));
 
             this.generateGridToolStripMenuItem.Click += (s, e) => this.undoRedoManager.Do(this.project.Commands.GetCommand(Corner2CornerCommand.GenerateImageGrid));
+            this.generateGridToolStripButton.Click += (s, e) => this.undoRedoManager.Do(this.project.Commands.GetCommand(Corner2CornerCommand.GenerateImageGrid));
 
             this.saveTextPatternToolStripButton.Click += (s, e) => this.undoRedoManager.Do(this.project.Commands.GetCommand(Corner2CornerCommand.SaveTextPattern));
             this.saveTextPatternToolStripMenuItem.Click += (s, e) => this.undoRedoManager.Do(this.project.Commands.GetCommand(Corner2CornerCommand.SaveTextPattern));

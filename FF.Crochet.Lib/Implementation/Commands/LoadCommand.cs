@@ -16,11 +16,8 @@ namespace FF.Corner2Corner.Lib
         public LoadCommand(Corner2CornerProject project, ICorner2CornerCommandsInput commandsInput, IUndoRedoManager undoRedoManager)
             : base(
                   project, 
-                  commandsInput, 
-                  new ProjectChangeDetails(imageChanged:true, paletteChanged:true, selectedPaletteItemChanged:true),
-                  supportsUndo:false,
-                  clearsUndoStack:true,
-                  trackChange: false)
+                  commandsInput,
+                  Corner2CornerCommandOptions.New().ChangesEverything().ResetsOperations())
         {
             this.undoRedoManager = undoRedoManager;
         }

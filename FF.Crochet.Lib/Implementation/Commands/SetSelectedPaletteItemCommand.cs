@@ -12,7 +12,7 @@ namespace FF.Corner2Corner.Lib
     internal class SetSelectedPaletteItemCommand : BaseCorner2CornerCommand<IPaletteItem>, ICommand
     {
         public SetSelectedPaletteItemCommand(Corner2CornerProject project, ICorner2CornerCommandsInput commandsInput)
-            : base(project, commandsInput, new ProjectChangeDetails(selectedPaletteItemChanged:true))
+            : base(project, commandsInput, Corner2CornerCommandOptions.New().ChangesPalette())
         {
         }
 
