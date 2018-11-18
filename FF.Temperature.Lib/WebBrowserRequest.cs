@@ -48,7 +48,6 @@ namespace FF.Temperature.Lib
 
         private void Browser_DocumentCompleted(object sender, EventArgs e)
         {
-            this.userInteraction.Log($"Document completed for {this.description}");
             this.manualResetEvent?.Set();
         }
 

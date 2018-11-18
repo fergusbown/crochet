@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -15,7 +16,6 @@ namespace FF.Temperature.Lib
         private readonly IUserInteraction userInteraction;
         private readonly IWebBrowser browser;
         private const string observationTableXPath = "//div[contains(@class, 'observation-table')]//table";
-        private const string summaryTableXPath = "//div[contains(@class, 'summary-table')]//table";
 
 
         public WeatherUnderground(string location, IUserInteraction userInteraction, IWebBrowser browser)
@@ -28,10 +28,9 @@ namespace FF.Temperature.Lib
         private bool IsDocumentFullyLoaded(HtmlDocument htmlDocument, out int remaining)
         {
             bool readingsComplete = GetReadings(htmlDocument, DateTime.Today, out List<WeatherReading> readings, out int readingsRemaining);
-            bool daytimeComplete = GetDaytimeInformation(htmlDocument, DateTime.Today, out DateTime sunrise, out DateTime sunset, out int daytimeRemaining);
+            bool locationComplete = GetLocationInformation(htmlDocument, out double latitude, out double longitude, out int daytimeRemaining);
             remaining = readingsRemaining + daytimeRemaining;
-            return readingsComplete && daytimeComplete;
-
+            return readingsComplete && locationComplete;
         }
 
         private string NullIfEmpty(string value)
@@ -84,7 +83,10 @@ namespace FF.Temperature.Lib
                         }
                         else
                         {
-                            readingTime = ParseSunTime(date.Date, timeText12h);
+                            if (!ParseSunTime(date.Date, timeText12h, out readingTime))
+                            {
+                                remaining++;
+                            }
                         }
 
                         var readingTemperature = int.Parse(temperatureText);
@@ -97,33 +99,73 @@ namespace FF.Temperature.Lib
             return remaining == 0 && readings.Any();
         }
 
-        private static DateTime ParseSunTime(DateTime date, string timeText)
+        private static bool ParseSunTime(DateTime date, string timeText, out DateTime result)
         {
-            return date.Date + DateTime.ParseExact(timeText, "h:m tt", CultureInfo.InvariantCulture).TimeOfDay;
-        }
-
-        private bool GetDaytimeInformation(HtmlDocument htmlDocument, DateTime date, out DateTime sunrise, out DateTime sunset, out int remaining)
-        {
-            var summaryTable = htmlDocument.DocumentNode.SelectSingleNode(summaryTableXPath);
-
-            var timeCells = summaryTable?.SelectSingleNode("//th[text() = 'Actual Time']")?.ParentNode.SelectNodes("td")?.ToList();
-
-            if (timeCells == null)
+            if (DateTime.TryParseExact(timeText, "h:m tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
             {
-                sunrise = default(DateTime);
-                sunset = default(DateTime);
-                remaining = 2;
-                return false;
+                result = date.Date + result.TimeOfDay;
+                return true;
             }
             else
             {
-                var sunriseText = timeCells[1].InnerText.Trim();
-                var sunsetText = timeCells[2].InnerText.Trim();
-                remaining = 0;
-                sunrise = ParseSunTime(date, sunriseText);
-                sunset = ParseSunTime(date, sunsetText);
-                return true;
+                result = default(DateTime);
+                return false;
             }
+        }
+
+        private bool TryConvertlocationText(string locationText, out double location)
+        {
+            if (locationText != null)
+            {
+                double multiplier = 1;
+
+                if (locationText.EndsWith("S") || locationText.EndsWith("W"))
+                {
+                    multiplier = -1;
+                }
+
+                locationText = locationText.TrimEnd(' ', '°', 'N', 'S', 'E', 'W');
+
+                if (double.TryParse(locationText, out location))
+                {
+                    location *= multiplier;
+                    return true;
+                }
+            }
+
+            location = double.NaN;
+            return false;
+        }
+
+        private bool GetLocationInformation(HtmlDocument htmlDocument, out double latitude, out double longitude, out int remaining)
+        {
+            var location = htmlDocument.DocumentNode.SelectSingleNode("//city-header//span[contains(@class, 'subheading')]")?.InnerText;
+
+            if (location == null)
+            {
+                latitude = double.NaN;
+                longitude = double.NaN;
+                remaining = 2;
+            }
+            else
+            {
+                remaining = 0;
+
+                var latitudeText = NullIfEmpty(Regex.Match(location, @"[\d]+\.[\d]+ °[N|S]").Value);
+                var longitudeText = NullIfEmpty(Regex.Match(location, @"[\d]+\.[\d]+ °[W|E]").Value);
+
+                if (!TryConvertlocationText(latitudeText, out latitude))
+                {
+                    remaining++;
+                }
+
+                if (!TryConvertlocationText(longitudeText, out longitude))
+                {
+                    remaining++;
+                }
+            }
+
+            return remaining == 0;
         }
 
 
@@ -137,18 +179,20 @@ namespace FF.Temperature.Lib
             var htmlDocument = await WebBrowserRequest.Navigate(getUrl, IsDocumentFullyLoaded, this.userInteraction, this.browser);
 
             if (GetReadings(htmlDocument, date, out List<WeatherReading> readings, out int dummy)
-                && GetDaytimeInformation(htmlDocument, date, out DateTime sunrise, out DateTime sunset, out int dummy2))
+                && GetLocationInformation(htmlDocument, out double latitude, out double longitude, out int dummy2))
             {
-                return new WeatherInformation(
-                    sunrise,
-                    sunset,
-                    readings);
+                WeatherInformation daylight = SunriseSunset.GetInformation(this.userInteraction, date, latitude, longitude);
 
+                if (daylight != null)
+                {
+                    return new WeatherInformation(
+                        daylight.Sunrise,
+                        daylight.Sunset,
+                        readings);
+                }
             }
-            else
-            {
-                return null;
-            }
+
+            return null;
         }
     }
 }

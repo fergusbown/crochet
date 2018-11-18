@@ -113,6 +113,7 @@ namespace TemperatureClient
 
                     if (info == null)
                     {
+                        ProcessResult(weatherInformation);
                         return;
                     }
                     else
@@ -124,8 +125,6 @@ namespace TemperatureClient
                 }
 
                 ProcessResult(weatherInformation);
-                Properties.Settings.Default.LastDate = dateTimePickerTo.Value;
-                InitializeDates();
             }
             finally
             {
@@ -136,23 +135,34 @@ namespace TemperatureClient
 
         private void ProcessResult(List<WeatherInformation> weatherInformation)
         {
-            StringBuilder result = new StringBuilder();
-
-            foreach (var info in weatherInformation)
+            if (weatherInformation.Any())
             {
-                result.AppendLine($"{info.Sunrise.Year}-{info.Sunrise.Month}-{info.Sunrise.Day}\t{info.AverageDaytimeDegrees}");
+                StringBuilder result = new StringBuilder();
+
+                foreach (var info in weatherInformation)
+                {
+                    result.AppendLine($"{info.Sunrise.Year}-{info.Sunrise.Month}-{info.Sunrise.Day}\t{info.AverageDaytimeDegrees}");
+                }
+
+                textBoxResult.Text = result.ToString();
+                Clipboard.SetText(result.ToString());
+
+                WeatherInformation latest = weatherInformation.LastOrDefault();
+
+                if (latest != null)
+                {
+                    Properties.Settings.Default.LastDate = latest.Sunrise.Date;
+                    InitializeDates();
+                }
+
+                MessageBox.Show(
+                    this,
+                    "Copied results to clipboard and results tab",
+                    "Temperature Data",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information,
+                    MessageBoxDefaultButton.Button1);
             }
-
-            textBoxResult.Text = result.ToString();
-            Clipboard.SetText(result.ToString());
-
-            MessageBox.Show(
-                this,
-                "Copied results to clipboard and results tab",
-                "Temperature Data",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Information,
-                MessageBoxDefaultButton.Button1);
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
