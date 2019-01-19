@@ -11,14 +11,12 @@ namespace FF.Corner2Corner.Lib
     {
         private class RowCoordinates
         {
-            public int RowIndex { get; }
             public Point Start { get; }
 
             public Point End { get; }
 
-            public RowCoordinates(int rowIndex, Point start, Point end)
+            public RowCoordinates(Point start, Point end)
             {
-                this.RowIndex = rowIndex;
                 this.Start = start;
                 this.End = end;
             }
@@ -65,7 +63,6 @@ namespace FF.Corner2Corner.Lib
             for (int rowIndex = 0; rowIndex < this.RowCount; rowIndex++)
             {
                 yield return new RowCoordinates(
-                    rowIndex,
                     new Point(startX, startY),
                     new Point(endX, endY));
 
@@ -83,11 +80,18 @@ namespace FF.Corner2Corner.Lib
             }
         }
 
-        private List<List<IPaletteItem>> GenerateRows()
+        private List<List<IPaletteItem>> GenerateRows(TextPatternStart textPatternStart)
         {
             var result = new List<List<IPaletteItem>>(this.RowCount);
+            var rows = GetRowCoordinates();
 
-            foreach (var rowCoordinates in GetRowCoordinates())
+            if (textPatternStart == TextPatternStart.BottomRight)
+            {
+                rows = rows.Reverse();
+            }
+
+            int rowIndex = 0;
+            foreach (var rowCoordinates in rows)
             {
                 List<IPaletteItem> row = new List<IPaletteItem>();
 
@@ -98,7 +102,7 @@ namespace FF.Corner2Corner.Lib
                     row.Add(this[x, y]);
                 }
 
-                if (rowCoordinates.RowIndex % 2 == 0)
+                if (rowIndex++ % 2 == 0)
                 {
                     row.Reverse();
                 }
@@ -109,16 +113,16 @@ namespace FF.Corner2Corner.Lib
             return result;
         }
 
-        public string GenerateTextPattern()
+        public string GenerateTextPattern(TextPatternStart textPatternStart = TextPatternStart.BottomRight)
         {
             StringBuilder sb = new StringBuilder();
 
-            sb.AppendLine("Pattern starts top left");
+            sb.AppendLine($"Pattern starts {(textPatternStart == TextPatternStart.TopLeft ? "top left" : "bottom right")}");
             sb.AppendLine("Odd rows (1, 3 etc) are down rows");
             sb.AppendLine();
 
             int rowNumber = 1;
-            foreach (List<IPaletteItem> row in GenerateRows())
+            foreach (List<IPaletteItem> row in GenerateRows(textPatternStart))
             {
                 IPaletteItem lastColor = null;
                 int lastColorCount = 0;

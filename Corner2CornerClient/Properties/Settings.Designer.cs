@@ -22,5 +22,17 @@ namespace Corner2CornerClient.Properties {
                 return defaultInstance;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("TopLeft")]
+        public global::FF.Corner2Corner.Lib.TextPatternStart TextPatternStart {
+            get {
+                return ((global::FF.Corner2Corner.Lib.TextPatternStart)(this["TextPatternStart"]));
+            }
+            set {
+                this["TextPatternStart"] = value;
+            }
+        }
     }
 }

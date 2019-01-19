@@ -31,5 +31,7 @@ namespace FF.Corner2Corner.Lib
         bool SelectTextPatternFile(out string outputFile);
 
         bool SelectImagePatternFile(out string outputFile);
+
+        TextPatternStart TextPatternStart { get; }
     }
 }

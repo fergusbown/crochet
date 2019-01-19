@@ -29,6 +29,8 @@ namespace Corner2CornerClient
 
         public string InputWidth => this.gridWidthToolStripTextBox.Text;
 
+        public TextPatternStart TextPatternStart => Properties.Settings.Default.TextPatternStart;
+
         public MainForm()
         {
             InitializeComponent();
@@ -167,6 +169,8 @@ namespace Corner2CornerClient
             this.redoToolStripMenuItem.Enabled = this.undoRedoManager.CanRedo();
             this.gridColorToolStripLabel.BackColor = this.project.GridBackgroundColor;
             this.toolStripStatusLabel1.Text = this.project.ImageGrid == null ? "" : $"Current grid dimensions: {this.project.ImageGrid.Width} x {this.project.ImageGrid.Height}";
+            this.topLeftToolStripMenuItem.Checked = Properties.Settings.Default.TextPatternStart == TextPatternStart.TopLeft;
+            this.bottomRightToolStripMenuItem.Checked = Properties.Settings.Default.TextPatternStart == TextPatternStart.BottomRight;
             this.Text = GetCaption();
         }
 
@@ -305,6 +309,18 @@ namespace Corner2CornerClient
         public bool SelectSaveProjectFile(out string outputFile)
         {
             return ShowFileDialog(saveProjectFileDialog, out outputFile);
+        }
+
+        private void topLeftToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Properties.Settings.Default.TextPatternStart = TextPatternStart.TopLeft;
+            Properties.Settings.Default.Save();
+        }
+
+        private void bottomRightToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Properties.Settings.Default.TextPatternStart = TextPatternStart.BottomRight;
+            Properties.Settings.Default.Save();
         }
     }
 }

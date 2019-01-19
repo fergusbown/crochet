@@ -54,7 +54,7 @@ namespace FF.Corner2Corner.Lib
             this.CommandsInput.SetBusy(true);
             try
             {
-                File.WriteAllText(to, this.Project.ImageGrid.GenerateTextPattern());
+                File.WriteAllText(to, this.Project.ImageGrid.GenerateTextPattern(this.CommandsInput.TextPatternStart));
             }
             finally
             {
