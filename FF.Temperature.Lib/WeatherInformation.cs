@@ -41,25 +41,25 @@ namespace FF.Temperature.Lib
 
     public class WeatherInformation
     {
-        public DateTime Sunrise { get; }
+        public DateTime StartTime { get; }
 
-        public DateTime Sunset { get; }
+        public DateTime EndTime { get; }
 
         public IEnumerable<WeatherReading> Readings { get; }
 
-        public WeatherInformation(DateTime sunrise, DateTime sunset, IEnumerable<WeatherReading> readings)
+        public WeatherInformation(DateTime startTime, DateTime endTime, IEnumerable<WeatherReading> readings)
         {
-            this.Sunrise = sunrise;
-            this.Sunset = sunset;
+            this.StartTime = startTime;
+            this.EndTime = endTime;
             this.Readings = readings.ToList();
         }
 
-        public int AverageDaytimeDegrees
+        public int AverageDegrees
         {
             get
             {
                 var average = this.Readings
-                    .Where(r => r.ReadingTime >= this.Sunrise && r.ReadingTime <= this.Sunset)
+                    .Where(r => r.ReadingTime >= this.StartTime && r.ReadingTime <= this.EndTime)
                     .Select(r => r.Degrees)
                     .Average();
 

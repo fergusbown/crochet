@@ -29,6 +29,8 @@ namespace TemperatureClient
             this.toolTipLocation.SetToolTip(
                 this.label1,
                 this.toolTipLocation.GetToolTip(this.textBoxLocation));
+
+            Application.Idle += Application_Idle;
         }
 
         private void InitializeDates()
@@ -98,7 +100,11 @@ namespace TemperatureClient
             buttonGo.Enabled = false;
             try
             {
-                var wu = new WeatherUnderground(textBoxLocation.Text, new UserInteraction(this.textBoxLog), this.browser);
+                ITimeRangeProvider timeRangeProvider = TimeRangeProviderFactory.GetProvider(
+                    Properties.Settings.Default.StartTime,
+                    Properties.Settings.Default.EndTime);
+
+                var wu = new WeatherUnderground(textBoxLocation.Text, new UserInteraction(this.textBoxLog), this.browser, timeRangeProvider);
                 List<WeatherInformation> weatherInformation = new List<WeatherInformation>();
                 DateTime workingDate = dateTimePickerFrom.Value;
                 DateTime endDate = dateTimePickerTo.Value;
@@ -141,7 +147,7 @@ namespace TemperatureClient
 
                 foreach (var info in weatherInformation)
                 {
-                    result.AppendLine($"{info.Sunrise.Year}-{info.Sunrise.Month}-{info.Sunrise.Day}\t{info.AverageDaytimeDegrees}");
+                    result.AppendLine($"{info.StartTime.Year}-{info.StartTime.Month}-{info.StartTime.Day}\t{info.AverageDegrees}");
                 }
 
                 textBoxResult.Text = result.ToString();
@@ -151,7 +157,7 @@ namespace TemperatureClient
 
                 if (latest != null)
                 {
-                    Properties.Settings.Default.LastDate = latest.Sunrise.Date;
+                    Properties.Settings.Default.LastDate = latest.StartTime.Date;
                     InitializeDates();
                 }
 
@@ -169,5 +175,46 @@ namespace TemperatureClient
         {
             Properties.Settings.Default.Save();
         }
+
+        private int GetTime(object sender)
+        {
+            string text = ((ToolStripMenuItem)sender).Text.Replace("&", "");
+
+            if (int.TryParse(text.Substring(0, 1), out int hour))
+            {
+                return hour;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
+        private void CheckTimeMenu(ToolStripMenuItem parent, int selectedTime)
+        {
+            foreach (ToolStripMenuItem menuItem in parent.DropDownItems)
+            {
+                menuItem.Checked = GetTime(menuItem) == selectedTime;
+            }
+        }
+
+        private void StartTime_Click(object sender, EventArgs e)
+        {
+            Properties.Settings.Default.StartTime = GetTime(sender);
+            Properties.Settings.Default.Save();
+        }
+
+        private void EndTime_Click(object sender, EventArgs e)
+        {
+            Properties.Settings.Default.EndTime = GetTime(sender);
+            Properties.Settings.Default.Save();
+        }
+
+        private void Application_Idle(object sender, EventArgs e)
+        {
+            CheckTimeMenu(startTimeToolStripMenuItem, Properties.Settings.Default.StartTime);
+            CheckTimeMenu(endTimeToolStripMenuItem, Properties.Settings.Default.EndTime);
+        }
+
     }
 }

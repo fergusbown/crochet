@@ -74,9 +74,11 @@
   <ItemGroup>
     <Compile Include="CefBrowserWrapper.cs" />
     <Compile Include="InvokingWebBrowser.cs" />
+    <Compile Include="ITimeRangeProvider.cs" />
     <Compile Include="IUserInteraction.cs" />
     <Compile Include="IWebBrowser.cs" />
     <Compile Include="SunriseSunset.cs" />
+    <Compile Include="TimeRangeProviderFactory.cs" />
     <Compile Include="WeatherInformation.cs" />
     <Compile Include="WeatherUnderground.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

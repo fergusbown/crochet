@@ -15,14 +15,20 @@ namespace FF.Temperature.Lib
         private readonly string location;
         private readonly IUserInteraction userInteraction;
         private readonly IWebBrowser browser;
+        private readonly ITimeRangeProvider timeRangeProvider;
         private const string observationTableXPath = "//div[contains(@class, 'observation-table')]//table";
 
 
-        public WeatherUnderground(string location, IUserInteraction userInteraction, IWebBrowser browser)
+        public WeatherUnderground(
+            string location, 
+            IUserInteraction userInteraction, 
+            IWebBrowser browser,
+            ITimeRangeProvider timeRangeProvider)
         {
             this.location = location;
             this.userInteraction = userInteraction;
             this.browser = browser;
+            this.timeRangeProvider = timeRangeProvider;
         }
 
         private bool IsDocumentFullyLoaded(HtmlDocument htmlDocument, out int remaining)
@@ -181,13 +187,13 @@ namespace FF.Temperature.Lib
             if (GetReadings(htmlDocument, date, out List<WeatherReading> readings, out int dummy)
                 && GetLocationInformation(htmlDocument, out double latitude, out double longitude, out int dummy2))
             {
-                WeatherInformation daylight = SunriseSunset.GetInformation(this.userInteraction, date, latitude, longitude);
+                WeatherInformation daylight = this.timeRangeProvider.GetInformation(this.userInteraction, date, latitude, longitude);
 
                 if (daylight != null)
                 {
                     return new WeatherInformation(
-                        daylight.Sunrise,
-                        daylight.Sunset,
+                        daylight.StartTime,
+                        daylight.EndTime,
                         readings);
                 }
             }

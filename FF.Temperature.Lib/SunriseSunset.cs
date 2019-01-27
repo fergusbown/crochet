@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace FF.Temperature.Lib
 {
-    public static class SunriseSunset
+    public class SunriseSunset : ITimeRangeProvider
     {
 
         private static bool ParseSunTime(DateTime date, string timeText, out DateTime result)
@@ -30,7 +30,7 @@ namespace FF.Temperature.Lib
             }
         }
 
-        public static WeatherInformation GetInformation(IUserInteraction userInteraction, DateTime date, double latitude, double longitude)
+        public WeatherInformation GetInformation(IUserInteraction userInteraction, DateTime date, double latitude, double longitude)
         {
             string address = $"https://api.sunrise-sunset.org/json?lng={longitude}&lat={latitude}&date={date.ToString("yyyy-MM-dd")}";
 
