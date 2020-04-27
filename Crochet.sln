@@ -1,21 +1,21 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27924.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30011.22
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Corner2CornerClient", "Corner2CornerClient\Corner2CornerClient.csproj", "{9198FCBC-3BF8-42EA-AE71-486DB1FE3009}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Corner2CornerClient", "Corner2CornerClient\Corner2CornerClient.csproj", "{9198FCBC-3BF8-42EA-AE71-486DB1FE3009}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FF.Corner2Corner.Lib", "FF.Crochet.Lib\FF.Corner2Corner.Lib.csproj", "{03A93B1D-983F-49C2-9D86-5E97E529AE03}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FF.Corner2Corner.Lib", "FF.Crochet.Lib\FF.Corner2Corner.Lib.csproj", "{03A93B1D-983F-49C2-9D86-5E97E529AE03}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FF.Temperature.Lib", "FF.Temperature.Lib\FF.Temperature.Lib.csproj", "{471965C7-577F-421C-A33B-B3AB1938A361}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FF.Temperature.Lib", "FF.Temperature.Lib\FF.Temperature.Lib.csproj", "{471965C7-577F-421C-A33B-B3AB1938A361}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TemperatureClient", "TemperatureClient\TemperatureClient.csproj", "{6BCD74B4-1076-48BC-8B15-D68DA8F4426A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TemperatureClient", "TemperatureClient\TemperatureClient.csproj", "{6BCD74B4-1076-48BC-8B15-D68DA8F4426A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Corner2Corner", "Corner2Corner", "{7C73C3B3-E4A0-48E4-82AF-5D7025B6D2C0}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TemperatureBlankets", "TemperatureBlankets", "{F6A44F50-AC07-4ADA-AAC2-CBC7AE3201AA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FF.Common", "FF.Common\FF.Common.csproj", "{E4D0502F-A85B-4892-89F1-4986E278565E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FF.Common", "FF.Common\FF.Common.csproj", "{E4D0502F-A85B-4892-89F1-4986E278565E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -53,26 +53,26 @@ Global
 		{03A93B1D-983F-49C2-9D86-5E97E529AE03}.Release|x86.Build.0 = Release|Any CPU
 		{471965C7-577F-421C-A33B-B3AB1938A361}.Debug|Any CPU.ActiveCfg = Debug|x86
 		{471965C7-577F-421C-A33B-B3AB1938A361}.Debug|Any CPU.Build.0 = Debug|x86
-		{471965C7-577F-421C-A33B-B3AB1938A361}.Debug|x64.ActiveCfg = Debug|x64
-		{471965C7-577F-421C-A33B-B3AB1938A361}.Debug|x64.Build.0 = Debug|x64
+		{471965C7-577F-421C-A33B-B3AB1938A361}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{471965C7-577F-421C-A33B-B3AB1938A361}.Debug|x64.Build.0 = Debug|Any CPU
 		{471965C7-577F-421C-A33B-B3AB1938A361}.Debug|x86.ActiveCfg = Debug|x86
 		{471965C7-577F-421C-A33B-B3AB1938A361}.Debug|x86.Build.0 = Debug|x86
 		{471965C7-577F-421C-A33B-B3AB1938A361}.Release|Any CPU.ActiveCfg = Release|x86
 		{471965C7-577F-421C-A33B-B3AB1938A361}.Release|Any CPU.Build.0 = Release|x86
-		{471965C7-577F-421C-A33B-B3AB1938A361}.Release|x64.ActiveCfg = Release|x64
-		{471965C7-577F-421C-A33B-B3AB1938A361}.Release|x64.Build.0 = Release|x64
+		{471965C7-577F-421C-A33B-B3AB1938A361}.Release|x64.ActiveCfg = Release|Any CPU
+		{471965C7-577F-421C-A33B-B3AB1938A361}.Release|x64.Build.0 = Release|Any CPU
 		{471965C7-577F-421C-A33B-B3AB1938A361}.Release|x86.ActiveCfg = Release|x86
 		{471965C7-577F-421C-A33B-B3AB1938A361}.Release|x86.Build.0 = Release|x86
 		{6BCD74B4-1076-48BC-8B15-D68DA8F4426A}.Debug|Any CPU.ActiveCfg = Debug|x86
 		{6BCD74B4-1076-48BC-8B15-D68DA8F4426A}.Debug|Any CPU.Build.0 = Debug|x86
-		{6BCD74B4-1076-48BC-8B15-D68DA8F4426A}.Debug|x64.ActiveCfg = Debug|x64
-		{6BCD74B4-1076-48BC-8B15-D68DA8F4426A}.Debug|x64.Build.0 = Debug|x64
+		{6BCD74B4-1076-48BC-8B15-D68DA8F4426A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6BCD74B4-1076-48BC-8B15-D68DA8F4426A}.Debug|x64.Build.0 = Debug|Any CPU
 		{6BCD74B4-1076-48BC-8B15-D68DA8F4426A}.Debug|x86.ActiveCfg = Debug|x86
 		{6BCD74B4-1076-48BC-8B15-D68DA8F4426A}.Debug|x86.Build.0 = Debug|x86
 		{6BCD74B4-1076-48BC-8B15-D68DA8F4426A}.Release|Any CPU.ActiveCfg = Release|x86
 		{6BCD74B4-1076-48BC-8B15-D68DA8F4426A}.Release|Any CPU.Build.0 = Release|x86
-		{6BCD74B4-1076-48BC-8B15-D68DA8F4426A}.Release|x64.ActiveCfg = Release|x64
-		{6BCD74B4-1076-48BC-8B15-D68DA8F4426A}.Release|x64.Build.0 = Release|x64
+		{6BCD74B4-1076-48BC-8B15-D68DA8F4426A}.Release|x64.ActiveCfg = Release|Any CPU
+		{6BCD74B4-1076-48BC-8B15-D68DA8F4426A}.Release|x64.Build.0 = Release|Any CPU
 		{6BCD74B4-1076-48BC-8B15-D68DA8F4426A}.Release|x86.ActiveCfg = Release|x86
 		{6BCD74B4-1076-48BC-8B15-D68DA8F4426A}.Release|x86.Build.0 = Release|x86
 		{E4D0502F-A85B-4892-89F1-4986E278565E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
