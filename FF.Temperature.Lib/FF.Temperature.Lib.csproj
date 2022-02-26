@@ -7,7 +7,7 @@
   <ItemGroup>
     <PackageReference Include="cef.redist.x64" Version="79.1.36" />
     <PackageReference Include="cef.redist.x86" Version="79.1.36" />
-    <PackageReference Include="CefSharp.Common" Version="79.1.360" />
+    <PackageReference Include="CefSharp.Common" Version="98.1.210" />
     <PackageReference Include="CefSharp.WinForms" Version="79.1.360" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.23" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />  
